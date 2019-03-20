@@ -13,8 +13,8 @@ import java.util.Arrays;
 public class Steganographie {
 
     static void hide(byte[] encrypted, File picture) throws Exception {
-        BufferedImage img;
-        img = ImageIO.read(picture);
+        BufferedImage img = ImageIO.read(picture);
+        //TODO alphakanalzeug BufferedImage img = new BufferedImage(inputImg.getWidth(), inputImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         int x = 0;
         int y = 0;
