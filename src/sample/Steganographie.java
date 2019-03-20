@@ -28,16 +28,10 @@ public class Steganographie {
                 msg = (byte)(msg >> 2);
             }
 
-            int modifiedRGB = 0;
-            for (int i=0; i<4; i++) {
-                modifiedRGB <<= 8;
-                modifiedRGB |= (int)(pixelByte[i] & 0xff);
-            }
-
-            img.setRGB(x, y, modifiedRGB);
+            img.setRGB(x, y, ByteBuffer.wrap(pixelByte).getInt());
 
             //Pixel adressen Routine
-            x ++;
+            x++;
             if (x >= img.getWidth()){
                 x = 0;
                 y ++;
