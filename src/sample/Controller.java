@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 
 public class Controller {
 
@@ -31,10 +32,9 @@ public class Controller {
     //Speichert das Bild in die Variable picture
     public void loadPicture() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png"));
 
         picture = fileChooser.showOpenDialog(new Stage());
-
         label_picturePath.setText(picture.getPath());
     }
 
@@ -43,6 +43,27 @@ public class Controller {
         FileInputStream fileInputStream = new FileInputStream(document);
 
         byte[] inputBytes = new byte[(int) document.length()];
+        fileInputStream.read(inputBytes);
+
+        byte[] outputBytes = AES.encrypt(inputBytes, "test");
+
+        byte[] flag = new byte[4];
+        Arrays.fill(flag, (byte) 88);
+
+        byte[] finalString = new byte[outputBytes.length + flag.length];
+        System.arraycopy(outputBytes, 0, finalString, 0 , outputBytes.length);
+        System.arraycopy(flag, 0, finalString, outputBytes.length , flag.length);
+
+        Steganographie.hide(finalString, picture);
     }
 
+    public void decrypt() throws Exception{
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png"));
+
+        picture = fileChooser.showOpenDialog(new Stage());
+        label_picturePath.setText(picture.getPath());
+
+        Steganographie.extract(picture);
+    }
 }

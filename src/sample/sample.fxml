@@ -8,10 +8,11 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
-      <Button fx:id="button_encrypt" layoutX="272.0" layoutY="254.0" mnemonicParsing="false" onAction="#encrypt" text="Encrypt" />
+      <Button fx:id="button_encrypt" layoutX="240.0" layoutY="254.0" mnemonicParsing="false" onAction="#encrypt" text="Encrypt" />
       <Button fx:id="button_loadFile" layoutX="268.0" layoutY="94.0" mnemonicParsing="false" onAction="#loadFile" text="Load File" />
       <Label fx:id="label_filePath" layoutX="29.0" layoutY="126.0" text="File Path" />
       <Button fx:id="button_choosePicture" layoutX="253.0" layoutY="162.0" mnemonicParsing="false" onAction="#loadPicture" text="Choose Picture" />
       <Label fx:id="label_picturePath" layoutX="29.0" layoutY="192.0" text="Picture Path" />
+      <Button fx:id="button_decrypt" layoutX="303.0" layoutY="254.0" mnemonicParsing="false" onAction="#decrypt" text="Decrypt" />
    </children>
 </AnchorPane>
