@@ -1,14 +1,11 @@
 package sample;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Steganographie {
 
@@ -20,26 +17,13 @@ public class Steganographie {
         int y = 0;
 
         for (byte msg: encrypted) {
-            byte[] RGB = ByteBuffer.allocate(4).putInt(img.getRGB(x,y)).array();
-
-            //System.out.println("imgRGB 0: "+ Integer.toBinaryString((RGB[0]+256)%256));
-            //System.out.println("imgRGB 1: "+ Integer.toBinaryString((RGB[1]+256)%256));
-            //System.out.println("imgRGB 2: "+ Integer.toBinaryString((RGB[2]+256)%256));
-            //System.out.println("imgRGB 3: "+ Integer.toBinaryString((RGB[3]+256)%256));
-
-
-            byte[] pixelByte = RGB;
+            byte[] pixelByte = ByteBuffer.allocate(4).putInt(img.getRGB(x,y)).array();
 
             for (int i = 0; i < pixelByte.length; i++) {
                 byte insert = (byte)(msg & 0b00000011);
                 byte into = (byte)(pixelByte[i] & 0b11111100);
 
                 pixelByte[i] = (byte)(insert | into);
-
-                //System.out.println("msg: "+ Integer.toBinaryString((msg+256)%256));
-                //System.out.println("imgRGB insert: "+ Integer.toBinaryString((insert+256)%256));
-                //System.out.println("imgRGB into: "+ Integer.toBinaryString((into+256)%256));
-                //System.out.println("imgRGB pixlByte: "+ Integer.toBinaryString((pixelByte[i]+256)%256));
 
                 msg = (byte)(msg >> 2);
             }
@@ -50,14 +34,9 @@ public class Steganographie {
                 modifiedRGB |= (int)(pixelByte[i] & 0xff);
             }
 
-            //System.out.println("insert imgRGB: "+ Integer.toBinaryString((modifiedRGB)));
-            //System.out.println("imgRGB vorher getRGB: "+ Integer.toBinaryString(img.getRGB(x,y)));
-
-            img.setRGB(x, y, 0b11111100111111001111110011111100);
             img.setRGB(x, y, modifiedRGB);
 
-            //System.out.println("imgRGB nachher: "+ Integer.toBinaryString((img.getRGB(x,y))));
-
+            //Pixel adressen Routine
             x ++;
             if (x >= img.getWidth()){
                 x = 0;
@@ -71,6 +50,7 @@ public class Steganographie {
         }
 
         ImageIO.write(img, "png", new File(picture.getPath() + "Cryptor.png"));
+        System.out.println("Encrypted");
     }
 
     static void extract(File picture) throws Exception {
@@ -86,8 +66,7 @@ public class Steganographie {
         byte msg = 0;
 
         while(true) {
-            int RGB = img.getRGB(x,y);
-            byte[] pixelByte = ByteBuffer.allocate(4).putInt(RGB).array();
+            byte[] pixelByte = ByteBuffer.allocate(4).putInt(img.getRGB(x,y)).array();
 
             for (byte b: pixelByte) {
                 byte input = (byte)(b & 0b00000011);
@@ -98,6 +77,7 @@ public class Steganographie {
                 msg = (byte)(msg | input);
             }
 
+            //Abbruchbedingung für das Auslesen der Datei
             output.write(msg);
 
             if (msg == 88) {
@@ -111,6 +91,7 @@ public class Steganographie {
                 count = 0;
             }
 
+            //Pixel adressen Routine
             x ++;
             if (x >= img.getWidth()){
                 x = 0;
@@ -130,11 +111,13 @@ public class Steganographie {
             cutEnd[i] = outEncryptedAES[i];
         }
 
+        //TODO "test" durch schlüsselvariable tauschen
         byte[] decryptedAES = AES.decrypt(cutEnd, "test");
 
         //TODO Dynamisches schreiben mit dateityp
         try (FileOutputStream outputStream = new FileOutputStream("C:\\Users\\roman\\Desktop\\out.txt")) {
                outputStream.write(decryptedAES);
         }
+        System.out.println("Decrypted");
     }
 }

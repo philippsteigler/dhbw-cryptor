@@ -1,7 +1,6 @@
 package sample;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -45,6 +44,7 @@ public class Controller {
         byte[] inputBytes = new byte[(int) document.length()];
         fileInputStream.read(inputBytes);
 
+        //TODO "test" durch schlüsselvariable tauschen
         byte[] outputBytes = AES.encrypt(inputBytes, "test");
 
         byte[] flag = new byte[4];
@@ -57,6 +57,7 @@ public class Controller {
         Steganographie.hide(finalString, picture);
     }
 
+    //Liest die versteckte nachricht aus einem Bild und entschlüsselt sie
     public void decrypt() throws Exception{
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png"));
