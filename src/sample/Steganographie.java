@@ -90,12 +90,12 @@ class Steganographie {
         BufferedImage img = ImageIO.read(picture);
         int countDocumentEndFlag = 0;
         int countCipherEndFlag = 0;
-        boolean readFileType = false;
+        boolean readFileName = false;
         int x = 0;
         int y = 0;
 
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
-        ByteArrayOutputStream outputFileType = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputFileName = new ByteArrayOutputStream();
 
         byte cipherByte = 0;
 
@@ -111,7 +111,7 @@ class Steganographie {
                 cipherByte = (byte)(cipherByte | input);
             }
 
-            if (readFileType) {
+            if (readFileName) {
                 if (cipherByte == 42) {
                     countCipherEndFlag++;
                 } else {
@@ -123,7 +123,8 @@ class Steganographie {
                 }
 
                 if (countCipherEndFlag <= 4) {
-                    outputFileType.write(cipherByte);
+                    outputFileName
+                            .write(cipherByte);
                 }
             } else {
                 if (cipherByte == 88) {
@@ -134,8 +135,8 @@ class Steganographie {
                     } else {
                         countDocumentEndFlag++;
                         countCipherEndFlag++;
-                        outputFileType.write(cipherByte);
-                        readFileType = true;
+                        outputFileName.write(cipherByte);
+                        readFileName = true;
                     }
                 }
 
@@ -165,7 +166,7 @@ class Steganographie {
         // TODO: Variabler AES Key
         byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, "test");
 
-        byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
+        byte[] flaggedEncryptedFileNameBytes = outputFileName.toByteArray();
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
