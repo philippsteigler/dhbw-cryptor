@@ -8,9 +8,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 class Steganographie {
+
+    private static String getFileExtension(File file) {
+        String fileName = file.getName();
+
+        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+            return fileName.substring(fileName.lastIndexOf(".")+1);
+        else return "";
+    }
+
 
     static void hide(File document, File picture) throws Exception {
         FileInputStream fileInputStream = new FileInputStream(document);
@@ -18,17 +28,30 @@ class Steganographie {
 
         fileInputStream.read(documentBytes);
 
-        // TODO "test" durch schlüsselvariable tauschen
+        // TODO: Variabler AES Key
+        // Das eingelesene Dokument wird mit AES-256 verschlüsselt
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, "test");
 
-        // TODO: Flags für dateityp
-        // Schlussbytes 88 88 88 88 zur Wiedererkennung beim Extrahieren anhängen
+        // Flag zur Wiedererkennung des Textendes beim Extrahieren
         byte[] documentEndFlag = new byte[4];
         Arrays.fill(documentEndFlag, (byte) 88);
 
-        byte[] encryptedFile = new byte[encryptedDocumentBytes.length + documentEndFlag.length];
-        System.arraycopy(encryptedDocumentBytes, 0, encryptedFile, 0 , encryptedDocumentBytes.length);
-        System.arraycopy(documentEndFlag, 0, encryptedFile, encryptedDocumentBytes.length , documentEndFlag.length);
+        // TODO: Dateiendung verschlüsseln
+        // Kodierung des Dateityps für die spätere Extraktion aus dem Bild
+        byte[] fileTypeBytes = getFileExtension(document).getBytes(StandardCharsets.UTF_8);
+
+        // Flag am Ende des Chiffretextes
+        byte[] chipherEndFlag = new byte[4];
+        Arrays.fill(chipherEndFlag, (byte) 42);
+
+        // Hänge die erstellten Byte-Arrays an den Chiffretext an
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        outputStream.write(encryptedDocumentBytes);
+        outputStream.write(documentEndFlag);
+        outputStream.write(fileTypeBytes);
+        outputStream.write(chipherEndFlag);
+
+        byte[] cipher = outputStream.toByteArray();
 
         BufferedImage tmp = ImageIO.read(picture);
         BufferedImage img = new BufferedImage(tmp.getWidth(), tmp.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -37,12 +60,10 @@ class Steganographie {
         g.drawImage(tmp, 0, 0, null);
         g.dispose();
 
-        // TODO alphakanalzeug BufferedImage img = new BufferedImage(inputImg.getWidth(), inputImg.getHeight(), BufferedImage.TYPE_INT_ARGB);
-
         int x = 0;
         int y = 0;
 
-        for (byte aesByte: encryptedFile) {
+        for (byte aesByte: cipher) {
             byte[] rgbBytes = ByteBuffer.allocate(4).putInt(img.getRGB(x,y)).array();
 
             for (int i = 0; i < rgbBytes.length; i++) {
@@ -63,27 +84,29 @@ class Steganographie {
                 x = 0;
                 y ++;
                 if (y >= img.getHeight()) {
-                    // TODO: nächste Ebende in RGB
+                    System.out.println("--OVERWRITING PICTURE");
                     x = 0;
                     y = 0;
                 }
             }
         }
 
-        ImageIO.write(img, "png", new File(picture.getPath() + "_Cryptor.png"));
+        ImageIO.write(img, "png", new File(picture.getPath().substring(0, picture.getPath().length() - 4) + "_encrypted.png"));
         System.out.println("Encrypted");
     }
 
     static void extract(File picture) throws Exception {
         BufferedImage img = ImageIO.read(picture);
-
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
+        int countDocumentEndFlag = 0;
+        int countCipherEndFlag = 0;
+        boolean readFileType = false;
         int x = 0;
         int y = 0;
-        int count = 0;
 
-        byte aesByte = 0;
+        ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputFileType = new ByteArrayOutputStream();
+
+        byte cipherByte = 0;
 
         while(true) {
             byte[] rgbBytes = ByteBuffer.allocate(4).putInt(img.getRGB(x,y)).array();
@@ -92,24 +115,42 @@ class Steganographie {
                 byte input = (byte)(b & 0b00000011);
                 input = (byte)(input << 6);
 
-                aesByte = (byte)(aesByte >> 2);
-                aesByte = (byte)(aesByte & 0b00111111);
-                aesByte = (byte)(aesByte | input);
+                cipherByte = (byte)(cipherByte >> 2);
+                cipherByte = (byte)(cipherByte & 0b00111111);
+                cipherByte = (byte)(cipherByte | input);
             }
 
-            // Füge das verschlüsslte Byte zum Chiffretext hinzu
-            output.write(aesByte);
-
-            // Abbruchbedingung für das Extrahieren sind die Schlussbytes 88 88 88 88
-            if (aesByte == 88) {
-                count++;
-
-                if (count >= 4) {
-                  break;
+            if (readFileType) {
+                if (cipherByte == 42) {
+                    countCipherEndFlag++;
+                } else {
+                    if (countCipherEndFlag < 4) {
+                        countCipherEndFlag = 0;
+                    } else if (countCipherEndFlag == 4) {
+                        break;
+                    }
                 }
-            }
-            else {
-                count = 0;
+
+                if (countCipherEndFlag <= 4) {
+                    outputFileType.write(cipherByte);
+                }
+            } else {
+                if (cipherByte == 88) {
+                    countDocumentEndFlag++;
+                } else {
+                    if (countDocumentEndFlag < 4) {
+                        countDocumentEndFlag = 0;
+                    } else {
+                        countDocumentEndFlag++;
+                        countCipherEndFlag++;
+                        outputFileType.write(cipherByte);
+                        readFileType = true;
+                    }
+                }
+
+                if (countDocumentEndFlag <= 4) {
+                    outputDocument.write(cipherByte);
+                }
             }
 
             // Springe ein Pixel weiter
@@ -119,25 +160,40 @@ class Steganographie {
                 x = 0;
                 y ++;
                 if (y >= img.getHeight()) {
-                    // TODO: nächste Ebende in RGB
+                    System.out.println("--OVERWRITING PICTURE");
                     x = 0;
                     y = 0;
                 }
             }
         }
 
-        byte[] encryptedFile = output.toByteArray();
-        byte[] encryptedDocumentBytes = new byte[encryptedFile.length - 4];
+        byte[] flaggedEncryptedDocumentBytes = outputDocument.toByteArray();
+        byte[] encryptedDocumentBytes = new byte[flaggedEncryptedDocumentBytes.length - 4];
+        System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
 
-        System.arraycopy(encryptedFile, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
-
-        //TODO "test" durch schlüsselvariable tauschen
+        // TODO: Variabler AES Key
         byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, "test");
 
-        //TODO Dynamisches schreiben mit dateityp
-        try (FileOutputStream outputStream = new FileOutputStream("out.pdf")) {
-               outputStream.write(documentBytes);
+        byte[] flaggedFileTypeBytes = outputFileType.toByteArray();
+        byte[] fileTypeBytes = new byte[flaggedFileTypeBytes.length - 4];
+        System.arraycopy(flaggedFileTypeBytes, 0, fileTypeBytes, 0, fileTypeBytes.length);
+
+        String fileType = new String(fileTypeBytes, StandardCharsets.UTF_8);
+
+        // TODO: Dialog für speichern unter
+        if (fileType.length() > 0) {
+            try (FileOutputStream outputStream = new FileOutputStream("decrypted." + fileType)) {
+                outputStream.write(documentBytes);
+            }
+        } else {
+            try (FileOutputStream outputStream = new FileOutputStream("decrypted")) {
+                outputStream.write(documentBytes);
+            }
         }
+
+
+
+
 
         System.out.println("Decrypted");
     }
