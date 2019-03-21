@@ -13,32 +13,23 @@ import java.util.Arrays;
 
 class Steganographie {
 
-    private static String getFileExtension(File file) {
-        String fileName = file.getName();
-
-        if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
-            return fileName.substring(fileName.lastIndexOf(".")+1);
-        else return "";
-    }
-
-
     static void hide(File document, File picture) throws Exception {
+
+        // TODO: Variabler AES Key
+        // Dokument einlesen und mit AES verschlüsseln
         FileInputStream fileInputStream = new FileInputStream(document);
         byte[] documentBytes = new byte[(int) document.length()];
 
         fileInputStream.read(documentBytes);
-
-        // TODO: Variabler AES Key
-        // Das eingelesene Dokument wird mit AES-256 verschlüsselt
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, "test");
 
         // Flag zur Wiedererkennung des Textendes beim Extrahieren
         byte[] documentEndFlag = new byte[4];
         Arrays.fill(documentEndFlag, (byte) 88);
 
-        // TODO: Dateiendung verschlüsseln
-        // Kodierung des Dateityps für die spätere Extraktion aus dem Bild
-        byte[] fileTypeBytes = getFileExtension(document).getBytes(StandardCharsets.UTF_8);
+        // Dabeinamen extrahieren und verschlüsseln
+        byte[] fileNameBytes = document.getName().getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedFileNameBytes = AES.encrypt(fileNameBytes, "test");
 
         // Flag am Ende des Chiffretextes
         byte[] chipherEndFlag = new byte[4];
@@ -48,7 +39,7 @@ class Steganographie {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(encryptedDocumentBytes);
         outputStream.write(documentEndFlag);
-        outputStream.write(fileTypeBytes);
+        outputStream.write(encryptedFileNameBytes);
         outputStream.write(chipherEndFlag);
 
         byte[] cipher = outputStream.toByteArray();
@@ -174,26 +165,17 @@ class Steganographie {
         // TODO: Variabler AES Key
         byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, "test");
 
-        byte[] flaggedFileTypeBytes = outputFileType.toByteArray();
-        byte[] fileTypeBytes = new byte[flaggedFileTypeBytes.length - 4];
-        System.arraycopy(flaggedFileTypeBytes, 0, fileTypeBytes, 0, fileTypeBytes.length);
+        byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
+        byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
+        System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
-        String fileType = new String(fileTypeBytes, StandardCharsets.UTF_8);
+        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, "test");
+        String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
 
         // TODO: Dialog für speichern unter
-        if (fileType.length() > 0) {
-            try (FileOutputStream outputStream = new FileOutputStream("decrypted." + fileType)) {
+        try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
                 outputStream.write(documentBytes);
             }
-        } else {
-            try (FileOutputStream outputStream = new FileOutputStream("decrypted")) {
-                outputStream.write(documentBytes);
-            }
-        }
-
-
-
-
 
         System.out.println("Decrypted");
     }
