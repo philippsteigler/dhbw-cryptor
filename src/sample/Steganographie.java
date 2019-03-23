@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 class Steganographie {
 
-    static void hide(File document, File picture) throws Exception {
+    static BufferedImage hide(File document, File picture) throws Exception {
 
         // TODO: Variabler AES Key
         // Dokument einlesen und mit AES verschlüsseln
@@ -94,7 +94,7 @@ class Steganographie {
                     level++;
                     if (level >= 2) {
                         System.out.println("--ERROR: FILE TOO BIG");
-                        return;
+                        return null;
                     }
 
                     System.out.println("--END OF PICTURE");
@@ -106,9 +106,7 @@ class Steganographie {
             }
         }
 
-        // TODO: PNG-Encoder????
-        ImageIO.write(img, "png", new File(picture.getPath().substring(0, picture.getPath().length() - 4) + "_encrypted.png"));
-        System.out.println("Encrypted");
+        return img;
     }
 
     static byte[][] extract(File picture) throws Exception {
@@ -224,19 +222,5 @@ class Steganographie {
         byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, "test");
 
         return new byte[][]{documentBytes, fileNameBytes};
-
-        /*
-        // TODO: Dialog für "speichern unter"
-        if (fileName != null) {
-            try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
-                if (documentBytes != null) {
-                    outputStream.write(documentBytes);
-                    System.out.println("Decrypted");
-                }
-            }
-        }
-        */
-
-
     }
 }
