@@ -1,12 +1,10 @@
 package sample;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -113,7 +111,7 @@ class Steganographie {
         System.out.println("Encrypted");
     }
 
-    static void extract(File picture) throws Exception {
+    static byte[][] extract(File picture) throws Exception {
         BufferedImage img = ImageIO.read(picture);
 
         boolean readFileType = false;
@@ -200,7 +198,7 @@ class Steganographie {
                     level++;
                     if (level >= 2) {
                         System.out.println("--NO MATCH FOUND");
-                        return;
+                        return null;
                     }
 
                     System.out.println("--END OF PICTURE");
@@ -224,11 +222,10 @@ class Steganographie {
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
         byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, "test");
-        String fileName = null;
-        if (fileNameBytes != null) {
-            fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
-        }
 
+        return new byte[][]{documentBytes, fileNameBytes};
+
+        /*
         // TODO: Dialog für "speichern unter"
         if (fileName != null) {
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
@@ -238,6 +235,7 @@ class Steganographie {
                 }
             }
         }
+        */
 
 
     }
