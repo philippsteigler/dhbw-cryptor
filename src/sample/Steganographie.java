@@ -20,6 +20,7 @@ class Steganographie {
         FileInputStream fileInputStream = new FileInputStream(document);
         byte[] documentBytes = new byte[(int) document.length()];
         fileInputStream.read(documentBytes);
+        fileInputStream.close();
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, "test");
 
         // Flag zur Wiedererkennung des Textendes beim Extrahieren
@@ -36,11 +37,16 @@ class Steganographie {
 
         // Hänge die erstellten Byte-Arrays an den Chiffretext an
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        outputStream.write(encryptedDocumentBytes);
+        if (encryptedDocumentBytes != null) {
+            outputStream.write(encryptedDocumentBytes);
+        }
         outputStream.write(documentEndFlag);
-        outputStream.write(encryptedFileNameBytes);
+        if (encryptedFileNameBytes != null) {
+            outputStream.write(encryptedFileNameBytes);
+        }
         outputStream.write(chipherEndFlag);
         byte[] cipher = outputStream.toByteArray();
+        outputStream.close();
 
         // Erzeuge aus der eingelesenen Bilddatei ein Bild
         // Dabei wird ein Farbraum verwendet, der neben RGB-Kanälen auch einen Alpha-Kanal besitzt
@@ -59,6 +65,10 @@ class Steganographie {
         int rgbInt;
         int x = 0;
         int y = 0;
+        byte aesMask = 0b00000011;
+        byte rgbMask = (byte) 0b11111100;
+        int shift = 0;
+        int level = 0;
 
         for (byte aesByte: cipher) {
             rgbInt = img.getRGB(x, y);
@@ -69,9 +79,9 @@ class Steganographie {
             rgbBytes[3] = (byte)((rgbInt) & 0xff);
 
             for (int i = 0; i < 4; i++) {
-                insert = (byte)(aesByte & 0b00000011);
-                into = (byte)(rgbBytes[i] & 0b11111100);
-                rgbBytes[i] = (byte)(insert | into);
+                insert = (byte)(aesByte & aesMask);
+                into = (byte)(rgbBytes[i] & rgbMask);
+                rgbBytes[i] = (byte)((insert << shift) | into);
 
                 aesByte = (byte)(aesByte >> 2);
             }
@@ -82,8 +92,16 @@ class Steganographie {
             if (x >= width) {
                 x = 0;
                 y++;
-                if (y > height) {
-                    System.out.println("--OVERWRITING PICTURE");
+                if (y >= height) {
+                    level++;
+                    if (level >= 2) {
+                        System.out.println("--ERROR: FILE TOO BIG");
+                        return;
+                    }
+
+                    System.out.println("--END OF PICTURE");
+                    rgbMask = (byte) 0b1111110011;
+                    shift = 2;
                     x = 0;
                     y = 0;
                 }
@@ -95,7 +113,6 @@ class Steganographie {
         System.out.println("Encrypted");
     }
 
-    // TODO: Abbruch-Bedingung falls nichts gefunden wurde!!
     static void extract(File picture) throws Exception {
         BufferedImage img = ImageIO.read(picture);
 
@@ -105,17 +122,20 @@ class Steganographie {
         int countCipherEndFlag = 0;
 
         byte[] rgbBytes = new byte[4];
+        byte cipherByte = 0;
         byte input;
         int width = img.getWidth();
         int height = img.getHeight();
         int rgbInt;
         int x = 0;
         int y = 0;
+        byte aesMask = 0b00111111;
+        byte rgbMask = 0b00000011;
+        int shift = 6;
+        int level = 0;
 
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
         ByteArrayOutputStream outputFileType = new ByteArrayOutputStream();
-
-        byte cipherByte = 0;
 
         while(next) {
             rgbInt = img.getRGB(x, y);
@@ -126,11 +146,11 @@ class Steganographie {
             rgbBytes[3] = (byte)((rgbInt) & 0xff);
 
             for (byte b: rgbBytes) {
-                input = (byte)(b & 0b00000011);
-                input = (byte)(input << 6);
+                input = (byte)(b & rgbMask);
+                input = (byte)(input << shift);
 
                 cipherByte = (byte)(cipherByte >> 2);
-                cipherByte = (byte)(cipherByte & 0b00111111);
+                cipherByte = (byte)(cipherByte & aesMask);
                 cipherByte = (byte)(cipherByte | input);
             }
 
@@ -176,8 +196,16 @@ class Steganographie {
             if (x >= width) {
                 x = 0;
                 y++;
-                if (y > height) {
-                    System.out.println("--OVERWRITING PICTURE");
+                if (y >= height) {
+                    level++;
+                    if (level >= 2) {
+                        System.out.println("--NO MATCH FOUND");
+                        return;
+                    }
+
+                    System.out.println("--END OF PICTURE");
+                    rgbMask = 0b00001100;
+                    shift = 4;
                     x = 0;
                     y = 0;
                 }
@@ -196,13 +224,21 @@ class Steganographie {
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
         byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, "test");
-        String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
-
-        // TODO: Dialog für "speichern unter"
-        try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
-            outputStream.write(documentBytes);
+        String fileName = null;
+        if (fileNameBytes != null) {
+            fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
         }
 
-        System.out.println("Decrypted");
+        // TODO: Dialog für "speichern unter"
+        if (fileName != null) {
+            try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
+                if (documentBytes != null) {
+                    outputStream.write(documentBytes);
+                    System.out.println("Decrypted");
+                }
+            }
+        }
+
+
     }
 }
