@@ -17,8 +17,9 @@ public class Controller {
     private File picture;
     private File encryptedPicture;
 
-    @FXML Label label_picturePath;
     @FXML Label label_filePath;
+    @FXML Label label_picturePath;
+    @FXML Label label_encryptedPicturePath;
 
     // Öffnet eine neie Scene für die Dateiauswahl
     // Speichert die Datei in die Variable document
@@ -50,6 +51,9 @@ public class Controller {
         fileChooser.setTitle("Load picture to extract document from..");
 
         encryptedPicture = fileChooser.showOpenDialog(new Stage());
+        if (encryptedPicture != null) {
+            label_encryptedPicturePath.setText(encryptedPicture.getPath());
+        }
     }
 
     // Verschlüsseln und Verstecken der Datei
@@ -78,9 +82,6 @@ public class Controller {
 
     // Liest die versteckte nachricht aus einem Bild und entschlüsselt sie
     public void decrypt() throws Exception {
-        // TODO: Extra Button um Bild zum entschlüsseln einzulesen
-        loadEncryptedPicture();
-
         if (encryptedPicture == null) {
             return;
         }
