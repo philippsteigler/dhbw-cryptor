@@ -15,6 +15,19 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root));
         primaryStage.setResizable(false);
         primaryStage.show();
+
+        UserAdministration userAdministration = new UserAdministration();
+
+        int i = 0;
+        userAdministration.createUser(i++, "Test", "12345");
+        userAdministration.createUser(i++, "Test", "12345");
+        userAdministration.createUser(i++, "Test", "12345");
+        userAdministration.createUser(i++, "Test", "12345");
+
+        userAdministration.saveUsers();
+
+        userAdministration.setUsers();
+
     }
 
     public static void main(String[] args) {
