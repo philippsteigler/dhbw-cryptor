@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.Arrays;
+
 public class Main extends Application {
 
     @Override
@@ -17,17 +19,6 @@ public class Main extends Application {
         primaryStage.show();
 
         UserAdministration userAdministration = new UserAdministration();
-
-        int i = 0;
-        userAdministration.createUser(i++, "Test", "12345");
-        userAdministration.createUser(i++, "Test", "12345");
-        userAdministration.createUser(i++, "Test", "12345");
-        userAdministration.createUser(i++, "Test", "12345");
-
-        userAdministration.saveUsers();
-
-        userAdministration.setUsers();
-
     }
 
     public static void main(String[] args) {
