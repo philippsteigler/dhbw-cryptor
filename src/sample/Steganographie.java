@@ -92,11 +92,11 @@ class Steganographie {
                 if (y >= height) {
                     level++;
                     if (level >= 2) {
-                        System.out.println("--ERROR: FILE TOO BIG");
+                        System.out.println("--ERROR: FILE TOO BIG, NEED MORE PIXELS");
                         return null;
                     }
 
-                    System.out.println("--END OF PICTURE");
+                    System.out.println("--WRITING TO 2ND LEVEL");
                     rgbMask = (byte) 0b1111110011;
                     shift = 2;
                     x = 0;
@@ -194,11 +194,10 @@ class Steganographie {
                 if (y >= height) {
                     level++;
                     if (level >= 2) {
-                        System.out.println("--NO MATCH FOUND");
                         return null;
                     }
 
-                    System.out.println("--END OF PICTURE");
+                    System.out.println("--WRITING TO 2ND LEVEL");
                     rgbMask = 0b00001100;
                     shift = 4;
                     x = 0;

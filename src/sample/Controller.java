@@ -11,38 +11,74 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 
 public class Controller {
 
     private File document;
     private File picture;
     private File encryptedPicture;
+    private BufferedImage pictureBuffered;
 
-    @FXML Label label_filePath;
-    @FXML Label label_picturePath;
-    @FXML Label label_encryptedPicturePath;
+    @FXML Label label_documentFileSize;
+    @FXML Label label_documentName;
+    @FXML Label label_pictureFileSize;
+    @FXML Label label_pictureName;
+    @FXML Label label_encryptedPictureFileSize;
+    @FXML Label label_encryptedPictureName;
+    @FXML Label label_pictureResolution;
+    @FXML Label label_encryptError;
+    @FXML Label label_decryptError;
 
-    // Öffnet eine neie Scene für die Dateiauswahl
+    private static String getFileSizeString(long size) {
+        DecimalFormat df = new DecimalFormat("0.00");
+
+        double sizeKb = 1000;
+        double sizeMb = sizeKb * sizeKb;
+        double sizeGb = sizeMb * sizeKb;
+        double sizeTerra = sizeGb * sizeKb;
+
+        if (size < sizeMb) {
+            return df.format(size / sizeKb) + " KB";
+        } else if (size < sizeGb) {
+            return df.format(size / sizeMb) + " MB";
+        } else if (size < sizeTerra) {
+            return df.format(size / sizeGb) + " GB";
+        }
+
+        return "";
+    }
+
+    // Öffnet eine enie Scene für die Dateiauswahl
     // Speichert die Datei in die Variable document
     public void loadFile() {
         FileChooser fileChooser = new FileChooser();
 
         document = fileChooser.showOpenDialog(new Stage());
         if (document != null) {
-            label_filePath.setText(document.getPath());
+            label_documentFileSize.setText(getFileSizeString(document.length()));
+            label_documentName.setText(document.getName());
+            label_encryptError.setText("");
         }
     }
 
-    // Öffnet eine neie Scene für die Bildauswahl
+    // Öffnet eine eine Scene für die Bildauswahl
     // Speichert das Bild in die Variable picture
-    public void loadPicture() {
+    public void loadPicture() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
         fileChooser.setTitle("Load picture to embed document into..");
 
         picture = fileChooser.showOpenDialog(new Stage());
         if (picture != null) {
-            label_picturePath.setText(picture.getPath());
+            label_pictureFileSize.setText(getFileSizeString(picture.length()));
+            label_pictureName.setText(picture.getName());
+
+            pictureBuffered = ImageIO.read(picture);
+            int imgWidth = pictureBuffered.getWidth();
+            int imgHeight = pictureBuffered.getHeight();
+            label_pictureResolution.setText("Resolution of Picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This Picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
+            label_encryptError.setText("");
         }
     }
 
@@ -53,7 +89,9 @@ public class Controller {
 
         encryptedPicture = fileChooser.showOpenDialog(new Stage());
         if (encryptedPicture != null) {
-            label_encryptedPicturePath.setText(encryptedPicture.getPath());
+            label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
+            label_encryptedPictureName.setText(encryptedPicture.getName());
+            label_encryptError.setText("");
         }
     }
 
@@ -63,22 +101,35 @@ public class Controller {
             return;
         }
 
+        label_encryptError.setText("");
+
+        pictureBuffered = ImageIO.read(picture);
+        int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
+        long fileSize = document.length();
+
+        if (fileSize > numberOfPixels * 2) {
+            label_encryptError.setText("Error! Use smaller File (max. " + getFileSizeString(numberOfPixels*2) + ") or Image with higher Resolution (min. " + fileSize/2 + " Pixels).") ;
+            return;
+        }
+
         BufferedImage encryptedPicture = Steganographie.hide(document, picture);
 
         if (encryptedPicture != null) {
-
             FileChooser fileChooser = new FileChooser();
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
             fileChooser.setTitle("Save encrypted picture as..");
             fileChooser.setInitialFileName(picture.getName().substring(0, picture.getName().lastIndexOf(".")) + "_encrypted");
             File file = fileChooser.showSaveDialog(new Stage());
 
-            try {
-                ImageIO.write(encryptedPicture, "png", file);
-                System.out.println("Encrypted");
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (file != null) {
+                try {
+                    ImageIO.write(encryptedPicture, "png", file);
+                    System.out.println("Encrypted");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+
 
         }
     }
@@ -90,6 +141,12 @@ public class Controller {
         }
 
         byte[][] result = Steganographie.extract(encryptedPicture);
+
+        if (result == null) {
+            label_decryptError.setText("This picture doesn't seem to contain any hidden files!");
+        } else {
+            label_encryptError.setText("");
+        }
 
         String fileName = null;
         if (result != null && result[1] != null) {
@@ -116,7 +173,6 @@ public class Controller {
             fileChooser.setTitle("Save decrypted file as..");
 
             File file = fileChooser.showSaveDialog(new Stage());
-
 
             try (FileOutputStream outputStream = new FileOutputStream(file.getPath())) {
                 if (result[0] != null) {
