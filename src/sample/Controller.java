@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class Controller {
@@ -72,11 +73,13 @@ public class Controller {
             fileChooser.setInitialFileName(picture.getName().substring(0, picture.getName().lastIndexOf(".")) + "_encrypted");
             File file = fileChooser.showSaveDialog(new Stage());
 
-            // TODO: PNG-Encoder????
-            if (file != null) {
+            try {
                 ImageIO.write(encryptedPicture, "png", file);
                 System.out.println("Encrypted");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
         }
     }
 
@@ -114,13 +117,14 @@ public class Controller {
 
             File file = fileChooser.showSaveDialog(new Stage());
 
-            if (file != null) {
-                try (FileOutputStream outputStream = new FileOutputStream(file.getPath())) {
-                    if (result[0] != null) {
-                        outputStream.write(result[0]);
-                        System.out.println("Decrypted");
-                    }
+
+            try (FileOutputStream outputStream = new FileOutputStream(file.getPath())) {
+                if (result[0] != null) {
+                    outputStream.write(result[0]);
+                    System.out.println("Decrypted");
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
