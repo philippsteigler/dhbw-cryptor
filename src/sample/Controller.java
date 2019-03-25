@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -27,8 +28,6 @@ public class Controller {
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
-    @FXML Label label_encryptError;
-    @FXML Label label_decryptError;
 
     private static String getFileSizeString(long size) {
         DecimalFormat df = new DecimalFormat("0.00");
@@ -58,7 +57,6 @@ public class Controller {
         if (document != null) {
             label_documentFileSize.setText(getFileSizeString(document.length()));
             label_documentName.setText(document.getName());
-            label_encryptError.setText("");
         }
     }
 
@@ -77,8 +75,7 @@ public class Controller {
             pictureBuffered = ImageIO.read(picture);
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
-            label_pictureResolution.setText("Resolution of Picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This Picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
-            label_encryptError.setText("");
+            label_pictureResolution.setText("Info: Resolution of Picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This Picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
         }
     }
 
@@ -91,7 +88,6 @@ public class Controller {
         if (encryptedPicture != null) {
             label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
             label_encryptedPictureName.setText(encryptedPicture.getName());
-            label_encryptError.setText("");
         }
     }
 
@@ -101,14 +97,14 @@ public class Controller {
             return;
         }
 
-        label_encryptError.setText("");
-
         pictureBuffered = ImageIO.read(picture);
         int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
         long fileSize = document.length();
 
         if (fileSize > numberOfPixels * 2) {
-            label_encryptError.setText("Error! Use smaller File (max. " + getFileSizeString(numberOfPixels*2) + ") or Image with higher Resolution (min. " + fileSize/2 + " Pixels).") ;
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Use smaller File (max. " + getFileSizeString(numberOfPixels*2) + ") or Image with higher Resolution (min. " + fileSize/2 + " Pixels).");
+            alert.showAndWait();
             return;
         }
 
@@ -129,8 +125,6 @@ public class Controller {
                     e.printStackTrace();
                 }
             }
-
-
         }
     }
 
@@ -143,9 +137,9 @@ public class Controller {
         byte[][] result = Steganographie.extract(encryptedPicture);
 
         if (result == null) {
-            label_decryptError.setText("This picture doesn't seem to contain any hidden files!");
-        } else {
-            label_encryptError.setText("");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("This picture doesn't seem to contain any hidden files!");
+            alert.showAndWait();
         }
 
         String fileName = null;

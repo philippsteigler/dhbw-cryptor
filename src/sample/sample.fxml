@@ -28,7 +28,6 @@
                         <Label layoutX="262.0" layoutY="59.0" text="File:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
                         <Label fx:id="label_pictureResolution" layoutX="14.0" layoutY="111.0" />
-                        <Label fx:id="label_encryptError" layoutX="14.0" layoutY="143.0" textFill="RED" />
                      </children>
                   </AnchorPane>
             </content>
@@ -43,7 +42,6 @@
                         <Label fx:id="label_encryptedPictureName" layoutX="296.0" layoutY="19.0" />
                         <Label layoutX="145.0" layoutY="19.0" text="Size:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
-                        <Label fx:id="label_decryptError" layoutX="24.0" layoutY="59.0" textFill="RED" />
                      </children>
                   </AnchorPane>
             </content>
