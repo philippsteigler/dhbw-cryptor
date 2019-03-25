@@ -23,6 +23,7 @@ public class Controller {
     private File picture;
     private File encryptedPicture;
     private BufferedImage pictureBuffered;
+    private UserAdministration userAdministration;
 
     @FXML Label label_documentFileSize;
     @FXML Label label_documentName;
@@ -31,9 +32,8 @@ public class Controller {
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
-    @FXML ListView listView;
-
-    UserAdministration userAdministration;
+    @FXML Label label_userName;
+    @FXML ListView<String> listView_Users;
 
     public Controller() {
         userAdministration = new UserAdministration();
@@ -194,10 +194,10 @@ public class Controller {
 
         observableList.addAll(userAdministration.getObservableUserNames());
 
-        listView.setItems(observableList);
+        listView_Users.setItems(observableList);
     }
 
     public void selectUserItem() {
-        label_userName.setText("Name: " + listView.getSelectionModel().getSelectedItem());
+        label_userName.setText("Name: " + listView_Users.getSelectionModel().getSelectedItem());
     }
 }

@@ -51,7 +51,7 @@
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <ListView fx:id="listView" onMouseClicked="#selectUserItem" prefHeight="377.0" prefWidth="321.0" />
+                        <ListView fx:id="listView_Users" onMouseClicked="#selectUserItem" prefHeight="377.0" prefWidth="321.0" />
                         <Label fx:id="label_userName" layoutX="347.0" layoutY="14.0" text="Name" />
                         <TextField layoutX="347.0" layoutY="121.0" />
                         <Button layoutX="347.0" layoutY="48.0" mnemonicParsing="false" text="Generate Key for Exchange" />
