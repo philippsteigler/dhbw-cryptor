@@ -2,6 +2,8 @@ package sample;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -29,6 +31,14 @@ public class Controller {
     @FXML Label label_pictureResolution;
     @FXML Label label_encryptError;
     @FXML Label label_decryptError;
+
+    @FXML ListView listView;
+
+    UserAdministration userAdministration;
+
+    public Controller() {
+        userAdministration = new UserAdministration();
+    }
 
     private static String getFileSizeString(long size) {
         DecimalFormat df = new DecimalFormat("0.00");
@@ -183,5 +193,22 @@ public class Controller {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void loadUsers() {
+
+        listView.setCellFactory(param -> new ListCell<String>() {
+           @Override
+           protected void updateItem(String name, boolean empty) {
+               super.updateItem(name, empty);
+
+               if (empty || name == null) {
+                   setText(null);
+               } else {
+                   setText(name);
+               }
+           }
+        });
+
     }
 }

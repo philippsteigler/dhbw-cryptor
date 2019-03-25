@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.collections.ObservableList;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -77,5 +79,15 @@ public class UserAdministration {
         fileOutputStream.write(usersString.getBytes());
         fileOutputStream.flush();
         fileOutputStream.close();
+    }
+
+    public ArrayList<String> getObservableUserNames() {
+        ArrayList<String> userNames = new ArrayList<>();
+
+        for (User user: users) {
+            userNames.add(user.getName());
+        }
+
+        return userNames;
     }
 }
