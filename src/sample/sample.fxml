@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.media.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.text.*?>
 <?import java.lang.*?>
@@ -46,6 +47,34 @@
                   </AnchorPane>
             </content>
           </Tab>
+            <Tab onSelectionChanged="#loadUsers" text="Contacts">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <ListView fx:id="listView" onMouseClicked="#selectUserItem" prefHeight="377.0" prefWidth="321.0" />
+                        <Label fx:id="label_userName" layoutX="347.0" layoutY="14.0" text="Name" />
+                        <TextField layoutX="347.0" layoutY="121.0" />
+                        <Button layoutX="347.0" layoutY="48.0" mnemonicParsing="false" text="Generate Key for Exchange" />
+                        <Label layoutX="461.0" layoutY="43.0" />
+                        <Label layoutX="526.0" layoutY="52.0" text="Exchange Key" />
+                        <Button layoutX="506.0" layoutY="121.0" mnemonicParsing="false" text="Submit" />
+                        <Label layoutX="347.0" layoutY="92.0" text="Enter Exchanged Key" />
+                        <Label layoutX="347.0" layoutY="171.0" text="Gemeinsamer Schlüßel Generiert" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
+            <Tab text="New User">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextField layoutX="20.0" layoutY="20.0" />
+                        <Label layoutX="192.0" layoutY="24.0" text="Name" />
+                        <Button layoutX="50.0" layoutY="61.0" mnemonicParsing="false" text="Add User" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
         </tabs>
       </TabPane>
    </children>

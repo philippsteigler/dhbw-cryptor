@@ -1,8 +1,11 @@
 package sample;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -28,6 +31,13 @@ public class Controller {
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
+    @FXML ListView listView;
+
+    UserAdministration userAdministration;
+
+    public Controller() {
+        userAdministration = new UserAdministration();
+    }
 
     private static String getFileSizeString(long size) {
         DecimalFormat df = new DecimalFormat("0.00");
@@ -177,5 +187,17 @@ public class Controller {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void loadUsers() {
+        ObservableList<String> observableList = FXCollections.observableArrayList();
+
+        observableList.addAll(userAdministration.getObservableUserNames());
+
+        listView.setItems(observableList);
+    }
+
+    public void selectUserItem() {
+        label_userName.setText("Name: " + listView.getSelectionModel().getSelectedItem());
     }
 }
