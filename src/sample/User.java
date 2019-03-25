@@ -7,14 +7,12 @@ public class User {
     private String name;
     private String email;
 
-    private byte[] privateKey;
-    private byte[] sharedKey;
+    private byte[] key;
 
-    public User(int id, String name, byte[] privateKey) {
+    public User(int id, String name, byte[] key) {
         this.id = id;
         this.name = name;
-        this.privateKey = new byte[privateKey.length];
-        this.privateKey = privateKey;
+        this.key = key;
     }
 
     public int getId() {
