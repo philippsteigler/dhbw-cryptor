@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 class Steganographie {
@@ -14,40 +14,49 @@ class Steganographie {
 
         // TODO: Variabler AES Key
         // Dokument einlesen und mit AES verschlüsseln
-        FileInputStream fileInputStream = new FileInputStream(document);
+        FileInputStream fos = new FileInputStream(document);
         byte[] documentBytes = new byte[(int) document.length()];
-        fileInputStream.read(documentBytes);
-        fileInputStream.close();
-        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
-                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
-                0x30, 0x30, (byte)0x9d });
+        fos.read(documentBytes);
+        fos.close();
+        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, new byte[] {
+                (byte)0xe0, 0x4f,
+                (byte)0xd0, 0x20,
+                (byte)0xea, 0x3a, 0x69, 0x10,
+                (byte)0xa2,
+                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                (byte)0x9d
+        });
 
         // Flag zur Wiedererkennung des Textendes beim Extrahieren
         byte[] documentEndFlag = new byte[4];
         Arrays.fill(documentEndFlag, (byte) 88);
 
         // Dabeinamen extrahieren und verschlüsseln
-        byte[] fileNameBytes = document.getName().getBytes(StandardCharsets.UTF_8);
-        byte[] encryptedFileNameBytes = AES.encrypt(fileNameBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
-                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
-                0x30, 0x30, (byte)0x9d });
+        byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), new byte[] {
+                (byte)0xe0, 0x4f,
+                (byte)0xd0, 0x20,
+                (byte)0xea, 0x3a, 0x69, 0x10,
+                (byte)0xa2,
+                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                (byte)0x9d
+        });
 
         // Flag am Ende des Chiffretextes
         byte[] chipherEndFlag = new byte[4];
         Arrays.fill(chipherEndFlag, (byte) 42);
 
         // Hänge die erstellten Byte-Arrays an den Chiffretext an
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         if (encryptedDocumentBytes != null) {
-            outputStream.write(encryptedDocumentBytes);
+            byteArrayOutputStream.write(encryptedDocumentBytes);
         }
-        outputStream.write(documentEndFlag);
+        byteArrayOutputStream.write(documentEndFlag);
         if (encryptedFileNameBytes != null) {
-            outputStream.write(encryptedFileNameBytes);
+            byteArrayOutputStream.write(encryptedFileNameBytes);
         }
-        outputStream.write(chipherEndFlag);
-        byte[] cipher = outputStream.toByteArray();
-        outputStream.close();
+        byteArrayOutputStream.write(chipherEndFlag);
+        byte[] cipher = byteArrayOutputStream.toByteArray();
+        byteArrayOutputStream.close();
 
         // Erzeuge aus der eingelesenen Bilddatei ein Bild
         // Dabei wird ein Farbraum verwendet, der neben RGB-Kanälen auch einen Alpha-Kanal besitzt
@@ -215,17 +224,27 @@ class Steganographie {
         System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
 
         // TODO: Variabler AES Key
-        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
-                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
-                0x30, 0x30, (byte)0x9d });
+        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, new byte[] {
+                (byte)0xe0, 0x4f,
+                (byte)0xd0, 0x20,
+                (byte)0xea, 0x3a, 0x69, 0x10,
+                (byte)0xa2,
+                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                (byte)0x9d
+        });
 
         byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
-        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
-                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
-                0x30, 0x30, (byte)0x9d });
+        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, new byte[] {
+                (byte)0xe0, 0x4f,
+                (byte)0xd0, 0x20,
+                (byte)0xea, 0x3a, 0x69, 0x10,
+                (byte)0xa2,
+                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                (byte)0x9d
+        });
 
         return new byte[][]{documentBytes, fileNameBytes};
     }

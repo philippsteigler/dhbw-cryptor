@@ -1,7 +1,5 @@
 package sample;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -11,7 +9,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -200,11 +197,7 @@ public class Controller {
     }
 
     public void loadUsers() {
-        ObservableList<String> observableList = FXCollections.observableArrayList();
-
-        observableList.addAll(userAdministration.getObservableUserNames());
-
-        listView_Users.setItems(observableList);
+        // TODO
     }
 
     public void selectUserItem() {
@@ -217,7 +210,7 @@ public class Controller {
         textArea_publicKey.clear();
     }
 
-    public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException {
+    public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, IOException {
         if (textField_UserName.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Please enter a Name!");

@@ -6,9 +6,9 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.crypto.interfaces.*;
 
-public class DiffieHellman {
+class DiffieHellman {
 
-    public static byte[][] alice() throws NoSuchAlgorithmException, InvalidKeyException {
+    static byte[][] alice() throws NoSuchAlgorithmException, InvalidKeyException {
         KeyPairGenerator aliceKpairGen = KeyPairGenerator.getInstance("DH");
         aliceKpairGen.initialize(2048);
 
@@ -23,7 +23,7 @@ public class DiffieHellman {
         return new byte[][]{alicePrivKeyEnc, alicePubKeyEnc};
     }
 
-    public static byte[] aliceComplete(byte[] alicePrivKeyEnc, byte[] bobPubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+    static byte[] aliceComplete(byte[] alicePrivKeyEnc, byte[] bobPubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         KeyFactory alicePrivKeyFac = KeyFactory.getInstance("DH");
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(alicePrivKeyEnc);
         PrivateKey alicePrivKey = alicePrivKeyFac.generatePrivate(pkcs8KeySpec);
@@ -40,7 +40,7 @@ public class DiffieHellman {
 
     }
 
-    public static byte[][] bob(byte[] alicePubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    static byte[][] bob(byte[] alicePubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
         KeyFactory bobKeyFac = KeyFactory.getInstance("DH");
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(alicePubKeyEnc);
 

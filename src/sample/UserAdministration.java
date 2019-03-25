@@ -8,85 +8,142 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
-public class UserAdministration {
+class UserAdministration {
 
-    ArrayList<User> users;
-
+    private NavigableMap<Integer, User> users;
     private String filename = "Users.txt";
 
-    public UserAdministration() {
-        users = new ArrayList<>();
+    UserAdministration() {
+        users = new TreeMap<>();
+
         try {
             readUsers();
+            printUsers();
         }
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
-        for (User user: users) {
-            System.out.println("name: " + user.getName());
-            //System.out.println("key: " + Arrays.toString(user.getKey()));
+    private int generateNewID() {
+        if (users.isEmpty()) {
+            return 0;
+        } else {
+            Map.Entry<Integer, User> lastEntry = users.lastEntry();
+            return lastEntry.getValue().getId() + 1;
         }
     }
 
-    public void createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException {
+    private void printUsers() {
+        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
+            String key = entry.getKey().toString();
+            User value = entry.getValue();
+
+            System.out.println("Key: " + key
+                    + "\nName: " + value.getName()
+                    + "\nPrivKey: " + Arrays.toString(value.getMyPrivKey())
+                    + "\nPubKey; " + Arrays.toString(value.getMyPublicKey())
+                    + "\nSecret: " + Arrays.toString(value.getSharedSecret())
+                    + "\n"
+            );
+        }
+    }
+
+    void createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
         byte[][] alice = DiffieHellman.alice();
-        users.add(new User(1, name, alice[0], alice[1]));
+        int id = generateNewID();
+
+        users.put(id, new User(id, name, alice[0], alice[1], new byte[1]));
+        saveUsers();
     }
 
-    public void createUser(String name, String publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException {
-        // TODO: Input Key String abfangen
+    void createUser(String name, String publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        // TODO: Input Key als Key-File
         byte[][] bob = DiffieHellman.bob(publicKey.getBytes(Charset.forName("UTF-8")));
-        User user = new User(1, name, bob[0], bob[1]);
-        user.setSharedSecret(bob[2]);
-        users.add(user);
+        int id = generateNewID();
+
+        users.put(id, new User(id, name, bob[0], bob[1], bob[2]));
+        saveUsers();
     }
 
-    public void readUsers() throws IOException{
+    private void readUsers() throws IOException{
         File file = new File(filename);
 
         if (file.exists()) {
-            byte[] encoded = Files.readAllBytes(Paths.get(filename));
+            byte[] encrypted = Files.readAllBytes(Paths.get(filename));
 
-            String usersString =  new String(encoded, "UTF-8");
+            byte[] encoded = AES.decrypt(encrypted, new byte[] {
+                    (byte)0xe0, 0x4f,
+                    (byte)0xd0, 0x20,
+                    (byte)0xea, 0x3a, 0x69, 0x10,
+                    (byte)0xa2,
+                    (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                    (byte)0x9d
+            });
 
-            String[] userStrings = usersString.split(";");
+            String encodedUsers = null;
+            if (encoded != null) {
+                encodedUsers = new String(encoded, "UTF-8");
+            }
 
-            for (String userString: userStrings) {
-                String[] attributes = userString.split("/");
-                if(attributes.length == 3) {
-                    //users.add(new User(Integer.parseInt(attributes[0]), attributes[1], attributes[2].getBytes(Charset.forName("UTF-8"))));
+            String[] separatedUsers = new String[0];
+            if (encodedUsers != null) {
+                separatedUsers = encodedUsers.split(":::");
+            }
+
+            for (String userString: separatedUsers) {
+                String[] attributes = userString.split("---");
+                if (attributes.length == 5) {
+                    this.users.put(Integer.parseInt(attributes[0]),
+                            new User(Integer.parseInt(attributes[0]),
+                                    attributes[1],
+                                    attributes[2].getBytes(Charset.forName("UTF-8")),
+                                    attributes[3].getBytes(Charset.forName("UTF-8")),
+                                    attributes[4].getBytes(Charset.forName("UTF-8"))
+                            )
+                    );
                 }
             }
         }
     }
 
-    public void saveUsers() throws IOException {
-        // TODO: save Users
+    private void saveUsers() throws IOException {
+        StringBuilder encodedUsers = new StringBuilder();
 
-        String usersString = "";
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+            User user = entry.getValue();
 
-        for (User user: users) {
-            //usersString = usersString + Integer.toString(user.getId()) + "/" + user.getName() + "/" + Arrays.toString(user.getKey()) + ";";
-            usersString.trim();
+            encodedUsers
+                    .append(user.getId())
+                    .append("---")
+                    .append(user.getName())
+                    .append("---")
+                    .append(new String(user.getMyPrivKey(), "UTF-8"))
+                    .append("---")
+                    .append(new String(user.getMyPublicKey(), "UTF-8"))
+                    .append("---")
+                    .append(new String(user.getSharedSecret(), "UTF-8"))
+                    .append(":::");
         }
 
-        FileOutputStream fileOutputStream = new FileOutputStream(filename);
-        fileOutputStream.write(usersString.getBytes());
-        fileOutputStream.flush();
-        fileOutputStream.close();
-    }
+        byte[] encryptedUsers = AES.encrypt(encodedUsers.toString().getBytes(Charset.forName("UTF-8")), new byte[] {
+                (byte)0xe0, 0x4f,
+                (byte)0xd0, 0x20,
+                (byte)0xea, 0x3a, 0x69, 0x10,
+                (byte)0xa2,
+                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
+                (byte)0x9d
+        });
 
-    public ArrayList<String> getObservableUserNames() {
-        ArrayList<String> userNames = new ArrayList<>();
+        FileOutputStream fos = new FileOutputStream(filename);
 
-        for (User user: users) {
-            userNames.add(user.getName());
+        if (encryptedUsers != null) {
+            fos.write(encryptedUsers);
         }
-
-        return userNames;
+        fos.flush();
+        fos.close();
     }
 }
+

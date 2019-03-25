@@ -8,34 +8,37 @@ public class User {
     private byte[] myPubKey;
     private byte[] sharedSecret;
 
-    public User(int id, String name, byte[] myPrivKey, byte[] myPublicKey) {
+    public User(int id, String name, byte[] myPrivKey, byte[] myPublicKey, byte[] sharedSecret) {
         this.id = id;
         this.name = name;
         this.myPrivKey = myPrivKey;
         this.myPubKey = myPublicKey;
+        this.sharedSecret = sharedSecret;
     }
 
-    public int getId() {
+    int getId() {
         return id;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public byte[] getMyPrivKey() {
+    byte[] getMyPrivKey() {
         return myPrivKey;
     }
 
-    public byte[] getMyPublicKey() {
+    byte[] getMyPublicKey() {
         return myPubKey;
     }
 
-    public byte[] getSharedSecret() {
+    byte[] getSharedSecret() {
         return sharedSecret;
     }
 
+    /*
     public void setSharedSecret(byte[] sharedSecret) {
         this.sharedSecret = sharedSecret;
     }
+    */
 }
