@@ -3,22 +3,30 @@ package sample;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.DecimalFormat;
 
 public class Controller {
 
+    public CheckBox checkBox_publicKey;
+    public TextField textField_UserName;
     private File document;
     private File picture;
     private File encryptedPicture;
@@ -33,7 +41,9 @@ public class Controller {
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
     @FXML Label label_userName;
+    @FXML Label label_publicKey;
     @FXML ListView<String> listView_Users;
+    @FXML TextArea textArea_publicKey;
 
     public Controller() {
         userAdministration = new UserAdministration();
@@ -199,5 +209,30 @@ public class Controller {
 
     public void selectUserItem() {
         label_userName.setText("Name: " + listView_Users.getSelectionModel().getSelectedItem());
+    }
+
+    public void checkBoxState() {
+        label_publicKey.setVisible(!label_publicKey.isVisible());
+        textArea_publicKey.setVisible(!textArea_publicKey.isVisible());
+        textArea_publicKey.clear();
+    }
+
+    public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException {
+        if (textField_UserName.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please enter a Name!");
+            alert.showAndWait();
+            return;
+        }
+
+        if (!checkBox_publicKey.isSelected()) {
+            userAdministration.createUser(textField_UserName.getText());
+        } else if (!textArea_publicKey.getText().isEmpty()) {
+            userAdministration.createUser(textField_UserName.getText(), textArea_publicKey.getText());
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please enter this Persons Public Key!");
+            alert.showAndWait();
+        }
     }
 }

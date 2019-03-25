@@ -1,14 +1,13 @@
 package sample;
 
-import javafx.collections.ObservableList;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -16,12 +15,12 @@ public class UserAdministration {
 
     ArrayList<User> users;
 
-    String filename = "Users.txt";
+    private String filename = "Users.txt";
 
     public UserAdministration() {
         users = new ArrayList<>();
         try {
-            setUsers();
+            readUsers();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -29,12 +28,24 @@ public class UserAdministration {
 
         for (User user: users) {
             System.out.println("name: " + user.getName());
-            System.out.println("key: " + Arrays.toString(user.getKey()));
+            //System.out.println("key: " + Arrays.toString(user.getKey()));
         }
-
     }
 
-    public void setUsers() throws IOException{
+    public void createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException {
+        byte[][] alice = DiffieHellman.alice();
+        users.add(new User(1, name, alice[0], alice[1]));
+    }
+
+    public void createUser(String name, String publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException {
+        // TODO: Input Key String abfangen
+        byte[][] bob = DiffieHellman.bob(publicKey.getBytes(Charset.forName("UTF-8")));
+        User user = new User(1, name, bob[0], bob[1]);
+        user.setSharedSecret(bob[2]);
+        users.add(user);
+    }
+
+    public void readUsers() throws IOException{
         File file = new File(filename);
 
         if (file.exists()) {
@@ -47,31 +58,19 @@ public class UserAdministration {
             for (String userString: userStrings) {
                 String[] attributes = userString.split("/");
                 if(attributes.length == 3) {
-                    users.add(new User(Integer.parseInt(attributes[0]), attributes[1], attributes[2].getBytes(Charset.forName("UTF-8"))));
+                    //users.add(new User(Integer.parseInt(attributes[0]), attributes[1], attributes[2].getBytes(Charset.forName("UTF-8"))));
                 }
             }
         }
     }
 
-    public void createUser(int id, String name, String key) {
-        MessageDigest sha;
-        try {
-            byte[] shaKey = key.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-1");
-            users.add(new User(id, name, sha.digest(shaKey)));
-        }
-        catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void saveUsers() throws IOException {
-        //TODO save Users
+        // TODO: save Users
 
         String usersString = "";
 
         for (User user: users) {
-            usersString = usersString + Integer.toString(user.getId()) + "/" + user.getName() + "/" + Arrays.toString(user.getKey()) + ";";
+            //usersString = usersString + Integer.toString(user.getId()) + "/" + user.getName() + "/" + Arrays.toString(user.getKey()) + ";";
             usersString.trim();
         }
 
