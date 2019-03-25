@@ -1,8 +1,9 @@
 package sample;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -31,6 +32,7 @@ public class Controller {
     @FXML Label label_pictureResolution;
     @FXML Label label_encryptError;
     @FXML Label label_decryptError;
+    @FXML Label label_userName;
 
     @FXML ListView listView;
 
@@ -196,19 +198,14 @@ public class Controller {
     }
 
     public void loadUsers() {
+        ObservableList<String> observableList = FXCollections.observableArrayList();
 
-        listView.setCellFactory(param -> new ListCell<String>() {
-           @Override
-           protected void updateItem(String name, boolean empty) {
-               super.updateItem(name, empty);
+        observableList.addAll(userAdministration.getObservableUserNames());
 
-               if (empty || name == null) {
-                   setText(null);
-               } else {
-                   setText(name);
-               }
-           }
-        });
+        listView.setItems(observableList);
+    }
 
+    public void selectUserItem() {
+        label_userName.setText("Name: " + listView.getSelectionModel().getSelectedItem());
     }
 }
