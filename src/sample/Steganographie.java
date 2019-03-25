@@ -18,7 +18,9 @@ class Steganographie {
         byte[] documentBytes = new byte[(int) document.length()];
         fileInputStream.read(documentBytes);
         fileInputStream.close();
-        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, "test");
+        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
+                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
+                0x30, 0x30, (byte)0x9d });
 
         // Flag zur Wiedererkennung des Textendes beim Extrahieren
         byte[] documentEndFlag = new byte[4];
@@ -26,7 +28,9 @@ class Steganographie {
 
         // Dabeinamen extrahieren und verschlüsseln
         byte[] fileNameBytes = document.getName().getBytes(StandardCharsets.UTF_8);
-        byte[] encryptedFileNameBytes = AES.encrypt(fileNameBytes, "test");
+        byte[] encryptedFileNameBytes = AES.encrypt(fileNameBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
+                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
+                0x30, 0x30, (byte)0x9d });
 
         // Flag am Ende des Chiffretextes
         byte[] chipherEndFlag = new byte[4];
@@ -211,13 +215,17 @@ class Steganographie {
         System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
 
         // TODO: Variabler AES Key
-        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, "test");
+        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
+                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
+                0x30, 0x30, (byte)0x9d });
 
         byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
-        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, "test");
+        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, new byte[] { (byte)0xe0, 0x4f, (byte)0xd0,
+                0x20, (byte)0xea, 0x3a, 0x69, 0x10, (byte)0xa2, (byte)0xd8, 0x08, 0x00, 0x2b,
+                0x30, 0x30, (byte)0x9d });
 
         return new byte[][]{documentBytes, fileNameBytes};
     }

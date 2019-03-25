@@ -3,16 +3,15 @@ package sample;
 public class User {
 
     private int id;
-
     private String name;
-    private String email;
-
-    private byte[] key;
+    private byte[] myPrivKey;
+    private byte[] myPublicKey;
+    private byte[] sharedSecret;
 
     public User(int id, String name, byte[] key) {
         this.id = id;
         this.name = name;
-        this.key = key;
+        this.sharedSecret = key;
     }
 
     public int getId() {
@@ -24,6 +23,6 @@ public class User {
     }
 
     public byte[] getKey() {
-        return key;
+        return sharedSecret;
     }
 }
