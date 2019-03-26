@@ -164,5 +164,21 @@ class UserAdministration {
         fos.flush();
         fos.close();
     }
+
+    public String[][] getIdAndName() {
+        String[][] idAndName = new String[users.size()][2];
+        int i = 0;
+
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+            User user = entry.getValue();
+
+            idAndName[i][0] = Integer.toString(user.getId());
+            idAndName[i][1] = user.getName();
+
+            i++;
+        }
+
+        return idAndName;
+    }
 }
 

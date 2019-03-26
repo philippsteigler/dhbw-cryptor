@@ -47,11 +47,10 @@
                   </AnchorPane>
             </content>
           </Tab>
-            <Tab text="Contacts">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+          <Tab onSelectionChanged="#listView_loadUsers" text="Contacts">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <ListView fx:id="listView_Users" prefHeight="377.0" prefWidth="321.0" />
                         <Label fx:id="label_userName" layoutX="347.0" layoutY="14.0" text="Name" />
                         <TextField layoutX="347.0" layoutY="121.0" />
                         <Button layoutX="347.0" layoutY="48.0" mnemonicParsing="false" text="Generate Key for Exchange" />
@@ -60,6 +59,12 @@
                         <Button layoutX="506.0" layoutY="121.0" mnemonicParsing="false" text="Submit" />
                         <Label layoutX="347.0" layoutY="92.0" text="Enter Exchanged Key" />
                         <Label layoutX="347.0" layoutY="171.0" text="Gemeinsamer Schlüßel Generiert" />
+                        <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="377.0" prefWidth="313.0">
+                          <columns>
+                            <TableColumn fx:id="tableColumn_id" prefWidth="55.0" text="ID" />
+                            <TableColumn fx:id="tableColumn_name" prefWidth="257.0" text="NAME" />
+                          </columns>
+                        </TableView>
                      </children>
                   </AnchorPane>
               </content>

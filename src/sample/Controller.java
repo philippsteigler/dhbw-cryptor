@@ -1,11 +1,16 @@
 package sample;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,6 +25,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Observable;
 
 public class Controller {
 
@@ -45,6 +52,11 @@ public class Controller {
     @FXML Label label_publicKey;
     @FXML Label label_publicKeyFile;
     @FXML ListView<String> listView_Users;
+
+    @FXML TableView tableView_users;
+    @FXML TableColumn tableColumn_id;
+    @FXML TableColumn tableColumn_name;
+    @FXML TableRow<String> tableRow_user;
 
     public Controller() {
         userAdministration = new UserAdministration();
@@ -198,6 +210,33 @@ public class Controller {
                 }
             }
         }
+    }
+
+    public void listView_loadUsers() {
+        tableColumn_id.setCellValueFactory((Callback<TableColumn.CellDataFeatures<String[], String>, ObservableValue<String>>) p -> {
+            String[] x = p.getValue();
+            if (x != null && x.length>0) {
+                return new SimpleStringProperty(x[0]);
+            } else {
+                return new SimpleStringProperty("<no id>");
+            }
+        });
+
+        tableColumn_name.setCellValueFactory((Callback<TableColumn.CellDataFeatures<String[], String>, ObservableValue<String>>) p -> {
+            String[] x = p.getValue();
+            if (x != null && x.length>1) {
+                return new SimpleStringProperty(x[1]);
+            } else {
+                return new SimpleStringProperty("<no name>");
+            }
+        });
+
+        tableView_users.getItems().addAll(userAdministration.getIdAndName());
+    }
+
+    public void selectUserInView() {
+        label_userName.setText("Id: " +  tableColumn_id.getCellData(tableView_users.getSelectionModel().getFocusedIndex()) +
+                               " Name: " + tableColumn_name.getCellData(tableView_users.getSelectionModel().getFocusedIndex()));
     }
 
     public void checkBoxState() {
