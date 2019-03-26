@@ -7,7 +7,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -19,6 +18,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -31,9 +32,12 @@ public class Controller {
 
     public CheckBox checkBox_publicKey;
     public TextField textField_UserName;
+    public Button button_loadPublicKey;
+
     private File document;
     private File picture;
     private File encryptedPicture;
+    private File publicKeyFile;
     private BufferedImage pictureBuffered;
     private UserAdministration userAdministration;
 
@@ -46,7 +50,8 @@ public class Controller {
     @FXML Label label_pictureResolution;
     @FXML Label label_userName;
     @FXML Label label_publicKey;
-    @FXML TextArea textArea_publicKey;
+    @FXML Label label_publicKeyFile;
+    @FXML ListView<String> listView_Users;
 
     @FXML TableView tableView_users;
     @FXML TableColumn tableColumn_id;
@@ -79,9 +84,9 @@ public class Controller {
     // Öffnet eine enie Scene für die Dateiauswahl
     // Speichert die Datei in die Variable document
     public void loadFile() {
-        FileChooser fileChooser = new FileChooser();
+        FileChooser fc = new FileChooser();
 
-        document = fileChooser.showOpenDialog(new Stage());
+        document = fc.showOpenDialog(new Stage());
         if (document != null) {
             label_documentFileSize.setText(getFileSizeString(document.length()));
             label_documentName.setText(document.getName());
@@ -91,11 +96,11 @@ public class Controller {
     // Öffnet eine eine Scene für die Bildauswahl
     // Speichert das Bild in die Variable picture
     public void loadPicture() throws IOException {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
-        fileChooser.setTitle("Load picture to embed document into..");
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
+        fc.setTitle("Load picture to embed document into..");
 
-        picture = fileChooser.showOpenDialog(new Stage());
+        picture = fc.showOpenDialog(new Stage());
         if (picture != null) {
             label_pictureFileSize.setText(getFileSizeString(picture.length()));
             label_pictureName.setText(picture.getName());
@@ -103,16 +108,16 @@ public class Controller {
             pictureBuffered = ImageIO.read(picture);
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
-            label_pictureResolution.setText("Info: Resolution of Picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This Picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
+            label_pictureResolution.setText("Info: Resolution of picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
         }
     }
 
     public void loadEncryptedPicture() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
-        fileChooser.setTitle("Load picture to extract document from..");
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
+        fc.setTitle("Load picture to extract document from..");
 
-        encryptedPicture = fileChooser.showOpenDialog(new Stage());
+        encryptedPicture = fc.showOpenDialog(new Stage());
         if (encryptedPicture != null) {
             label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
             label_encryptedPictureName.setText(encryptedPicture.getName());
@@ -131,7 +136,7 @@ public class Controller {
 
         if (fileSize > numberOfPixels * 2) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Use smaller File (max. " + getFileSizeString(numberOfPixels*2) + ") or Image with higher Resolution (min. " + fileSize/2 + " Pixels).");
+            alert.setContentText("Use smaller file (max. " + getFileSizeString(numberOfPixels*2) + ") or image with higher resolution (min. " + fileSize/2 + " pixels).");
             alert.showAndWait();
             return;
         }
@@ -139,16 +144,15 @@ public class Controller {
         BufferedImage encryptedPicture = Steganographie.hide(document, picture);
 
         if (encryptedPicture != null) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
-            fileChooser.setTitle("Save encrypted picture as..");
-            fileChooser.setInitialFileName(picture.getName().substring(0, picture.getName().lastIndexOf(".")) + "_encrypted");
-            File file = fileChooser.showSaveDialog(new Stage());
+            FileChooser fc = new FileChooser();
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
+            fc.setTitle("Save encrypted picture as..");
+            fc.setInitialFileName(picture.getName().substring(0, picture.getName().lastIndexOf(".")) + "_encrypted");
+            File file = fc.showSaveDialog(new Stage());
 
             if (file != null) {
                 try {
                     ImageIO.write(encryptedPicture, "png", file);
-                    System.out.println("Encrypted");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -181,28 +185,29 @@ public class Controller {
         }
 
         if (result != null && result[1] != null) {
-            FileChooser fileChooser = new FileChooser();
+            FileChooser fc = new FileChooser();
 
             if (parts.length > 1) {
                 FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Original Format (*." + parts[parts.length-1] + ")", "*." + parts[parts.length-1]);
-                fileChooser.getExtensionFilters().add(extFilter);
+                fc.getExtensionFilters().add(extFilter);
             } else {
                 FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Original Format (not extension)", "*.");
-                fileChooser.getExtensionFilters().add(extFilter);
+                fc.getExtensionFilters().add(extFilter);
             }
 
-            fileChooser.setInitialFileName(fileName);
-            fileChooser.setTitle("Save decrypted file as..");
+            fc.setInitialFileName(fileName);
+            fc.setTitle("Save decrypted file as..");
 
-            File file = fileChooser.showSaveDialog(new Stage());
+            File file = fc.showSaveDialog(new Stage());
 
-            try (FileOutputStream outputStream = new FileOutputStream(file.getPath())) {
-                if (result[0] != null) {
-                    outputStream.write(result[0]);
-                    System.out.println("Decrypted");
+            if (file != null) {
+                try (FileOutputStream os = new FileOutputStream(file.getPath())) {
+                    if (result[0] != null) {
+                        os.write(result[0]);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -235,26 +240,80 @@ public class Controller {
     }
 
     public void checkBoxState() {
+        button_loadPublicKey.setVisible(!button_loadPublicKey.isVisible());
         label_publicKey.setVisible(!label_publicKey.isVisible());
-        textArea_publicKey.setVisible(!textArea_publicKey.isVisible());
-        textArea_publicKey.clear();
+        label_publicKeyFile.setVisible(!label_publicKeyFile.isVisible());
+    }
+
+    public void loadPublicKey() {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey"));
+        fc.setTitle("Load public key for this contact..");
+
+        publicKeyFile = fc.showOpenDialog(new Stage());
+        if (publicKeyFile != null) {
+            label_publicKeyFile.setText(publicKeyFile.getName());
+        }
     }
 
     public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, IOException {
         if (textField_UserName.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please enter a Name!");
+            alert.setContentText("Please enter a name!");
             alert.showAndWait();
             return;
         }
 
-        if (!checkBox_publicKey.isSelected()) {
-            userAdministration.createUser(textField_UserName.getText());
-        } else if (!textArea_publicKey.getText().isEmpty()) {
-            userAdministration.createUser(textField_UserName.getText(), textArea_publicKey.getText());
+        if (!checkBox_publicKey.isSelected() && !textField_UserName.getText().isEmpty()) {
+            User user = userAdministration.createUser(textField_UserName.getText());
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("User '" + user.getName() + "' has been added. Please save the related public key and send it to " + user.getName() + ". Then get their public key and import it under 'contacts'.");
+            alert.showAndWait();
+
+            FileChooser fc = new FileChooser();
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey");
+            fc.getExtensionFilters().add(extFilter);
+
+            fc.setInitialFileName("publicKey_for_" + user.getName().replaceAll("\\s+","") + ".pubKey");
+            fc.setTitle("Save public key for this contact..");
+
+            File file = fc.showSaveDialog(new Stage());
+
+            if (file != null) {
+                try (FileOutputStream os = new FileOutputStream(file.getPath())) {
+                    os.write(user.getMyPublicKey());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (checkBox_publicKey.isSelected() && !textField_UserName.getText().isEmpty() && publicKeyFile != null) {
+            byte[] publicKey = Files.readAllBytes(Paths.get(publicKeyFile.getPath()));
+            User user = userAdministration.createUser(textField_UserName.getText(), publicKey);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("User '" + user.getName() + "' has been added. Please save the related public key and send it to " + user.getName() + ".");
+            alert.showAndWait();
+
+            FileChooser fc = new FileChooser();
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey");
+            fc.getExtensionFilters().add(extFilter);
+
+            fc.setInitialFileName("publicKey_for_" + user.getName().replaceAll("\\s+","") + ".pubKey");
+            fc.setTitle("Save public key for this contact..");
+
+            File file = fc.showSaveDialog(new Stage());
+
+            if (file != null) {
+                try (FileOutputStream os = new FileOutputStream(file.getPath())) {
+                    os.write(user.getMyPublicKey());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please enter this Persons Public Key!");
+            alert.setContentText("Please load this persons public key file!");
             alert.showAndWait();
         }
     }
