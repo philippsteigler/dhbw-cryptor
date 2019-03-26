@@ -12,8 +12,8 @@ import java.util.*;
 
 class UserAdministration {
 
+    private final String filename = System.getProperty("user.home") + "/cryptor/users.cryptor";
     private NavigableMap<Integer, User> users;
-    private String filename = "Users.txt";
 
     UserAdministration() {
         users = new TreeMap<>();
