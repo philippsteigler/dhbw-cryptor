@@ -20,10 +20,38 @@ class UserAdministration {
 
         try {
             readUsers();
-            printUsers();
+            usersToString();
         }
         catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /*
+    public void demo(byte[] pubkey) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+
+            if (entry.getValue().getId() == 2) {
+                entry.getValue().setSharedSecret(DiffieHellman.aliceComplete(entry.getValue().getMyPrivKey(), pubkey));
+            }
+        }
+
+        saveUsers();
+    }
+    */
+
+    private void usersToString() {
+        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
+            String key = entry.getKey().toString();
+            User value = entry.getValue();
+
+            System.out.println("Map-Key/ID: " + key + "/" + value.getId()
+                    + "\nName: " + value.getName()
+                    + "\nPrivKey: " + Arrays.toString(value.getMyPrivKey())
+                    + "\nPubKey; " + Arrays.toString(value.getMyPublicKey())
+                    + "\nSecret: " + Arrays.toString(value.getSharedSecret())
+                    + "\n"
+            );
         }
     }
 
@@ -36,36 +64,26 @@ class UserAdministration {
         }
     }
 
-    private void printUsers() {
-        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
-            String key = entry.getKey().toString();
-            User value = entry.getValue();
-
-            System.out.println("Key: " + key
-                    + "\nName: " + value.getName()
-                    + "\nPrivKey: " + Arrays.toString(value.getMyPrivKey())
-                    + "\nPubKey; " + Arrays.toString(value.getMyPublicKey())
-                    + "\nSecret: " + Arrays.toString(value.getSharedSecret())
-                    + "\n"
-            );
-        }
-    }
-
-    void createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+    User createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
         byte[][] alice = DiffieHellman.alice();
         int id = generateNewID();
 
-        users.put(id, new User(id, name, alice[0], alice[1], new byte[1]));
+        User user = new User(id, name, alice[0], alice[1], new byte[1]);
+        users.put(id, user);
         saveUsers();
+
+        return user;
     }
 
-    void createUser(String name, String publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
-        // TODO: Input Key als Key-File
-        byte[][] bob = DiffieHellman.bob(publicKey.getBytes(Charset.forName("UTF-8")));
+    User createUser(String name, byte[] publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        byte[][] bob = DiffieHellman.bob(publicKey);
         int id = generateNewID();
 
-        users.put(id, new User(id, name, bob[0], bob[1], bob[2]));
+        User user =  new User(id, name, bob[0], bob[1], bob[2]);
+        users.put(id, user);
         saveUsers();
+
+        return user;
     }
 
     private void readUsers() throws IOException{
@@ -85,7 +103,7 @@ class UserAdministration {
 
             String encodedUsers = null;
             if (encoded != null) {
-                encodedUsers = new String(encoded, "UTF-8");
+                encodedUsers = new String(encoded, "ISO-8859-1");
             }
 
             String[] separatedUsers = new String[0];
@@ -99,9 +117,9 @@ class UserAdministration {
                     this.users.put(Integer.parseInt(attributes[0]),
                             new User(Integer.parseInt(attributes[0]),
                                     attributes[1],
-                                    attributes[2].getBytes(Charset.forName("UTF-8")),
-                                    attributes[3].getBytes(Charset.forName("UTF-8")),
-                                    attributes[4].getBytes(Charset.forName("UTF-8"))
+                                    attributes[2].getBytes(Charset.forName("ISO-8859-1")),
+                                    attributes[3].getBytes(Charset.forName("ISO-8859-1")),
+                                    attributes[4].getBytes(Charset.forName("ISO-8859-1"))
                             )
                     );
                 }
@@ -120,15 +138,15 @@ class UserAdministration {
                     .append("---")
                     .append(user.getName())
                     .append("---")
-                    .append(new String(user.getMyPrivKey(), "UTF-8"))
+                    .append(new String(user.getMyPrivKey(), "ISO-8859-1"))
                     .append("---")
-                    .append(new String(user.getMyPublicKey(), "UTF-8"))
+                    .append(new String(user.getMyPublicKey(), "ISO-8859-1"))
                     .append("---")
-                    .append(new String(user.getSharedSecret(), "UTF-8"))
+                    .append(new String(user.getSharedSecret(), "ISO-8859-1"))
                     .append(":::");
         }
 
-        byte[] encryptedUsers = AES.encrypt(encodedUsers.toString().getBytes(Charset.forName("UTF-8")), new byte[] {
+        byte[] encryptedUsers = AES.encrypt(encodedUsers.toString().getBytes(Charset.forName("ISO-8859-1")), new byte[] {
                 (byte)0xe0, 0x4f,
                 (byte)0xd0, 0x20,
                 (byte)0xea, 0x3a, 0x69, 0x10,
@@ -142,6 +160,7 @@ class UserAdministration {
         if (encryptedUsers != null) {
             fos.write(encryptedUsers);
         }
+
         fos.flush();
         fos.close();
     }
