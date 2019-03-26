@@ -213,6 +213,8 @@ public class Controller {
     }
 
     public void listView_loadUsers() {
+        tableView_users.getItems().clear();
+
         tableColumn_id.setCellValueFactory((Callback<TableColumn.CellDataFeatures<String[], String>, ObservableValue<String>>) p -> {
             String[] x = p.getValue();
             if (x != null && x.length>0) {
