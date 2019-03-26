@@ -37,7 +37,6 @@ class DiffieHellman {
         aliceKeyAgree.doPhase(bobPubKey, true);
 
         return aliceKeyAgree.generateSecret();
-
     }
 
     static byte[][] bob(byte[] alicePubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
