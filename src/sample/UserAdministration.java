@@ -28,7 +28,7 @@ class UserAdministration {
     }
 
     private void usersToString() {
-        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
             String key = entry.getKey().toString();
             User value = entry.getValue();
 
@@ -45,7 +45,7 @@ class UserAdministration {
     ArrayList<User> getUsers() {
         ArrayList<User> userList = new ArrayList<>();
 
-        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
             userList.add(entry.getValue());
         }
 
@@ -85,9 +85,9 @@ class UserAdministration {
 
     void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
-
             if (entry.getValue().getId() == id) {
                 entry.getValue().setSharedSecret(DiffieHellman.aliceComplete(entry.getValue().getMyPrivKey(), publicKeyEnc));
+                break;
             }
         }
 
@@ -99,6 +99,7 @@ class UserAdministration {
 
             if (entry.getValue().getId() == id) {
                 users.remove(entry.getKey());
+                break;
             }
         }
 
