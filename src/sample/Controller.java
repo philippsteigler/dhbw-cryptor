@@ -230,7 +230,7 @@ public class Controller {
             pictureBuffered = ImageIO.read(encryptedPicture);
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
-            label_pictureResolutionDecryption.setText("Information:\n\nResolution of picture:\n" + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels)\n\nMaximum capacity:\n" + getFileSizeString(imgWidth*imgHeight*2));
+            label_pictureResolutionDecryption.setText("Information:\n\nResolution of picture:\n" + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels)");
 
             Image image = new Image(encryptedPicture.toURI().toString());
             imageView_decrypt.setImage(image);
