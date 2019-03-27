@@ -1,16 +1,17 @@
 package sample;
 
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -25,38 +26,49 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Observable;
+import java.util.stream.Collectors;
 
 public class Controller {
 
-    public CheckBox checkBox_publicKey;
-    public TextField textField_UserName;
-    public Button button_loadPublicKey;
-
-    private File document;
-    private File picture;
-    private File encryptedPicture;
-    private File publicKeyFile;
-    private BufferedImage pictureBuffered;
     private UserAdministration userAdministration;
 
+    // Encrypt
+    private File document;
+    private File picture;
+    private BufferedImage pictureBuffered;
     @FXML Label label_documentFileSize;
     @FXML Label label_documentName;
     @FXML Label label_pictureFileSize;
     @FXML Label label_pictureName;
+    @FXML ChoiceBox<User> choiseBox_encryptionUser;
+    @FXML Button button_encrypt;
+
+    // Decrypt
+    private File encryptedPicture;
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
-    @FXML Label label_userName;
-    @FXML Label label_publicKey;
-    @FXML Label label_publicKeyFile;
-    @FXML ListView<String> listView_Users;
+    @FXML ChoiceBox<User> choiseBox_decryptionUser;
+    @FXML Button button_decrypt;
 
-    @FXML TableView tableView_users;
-    @FXML TableColumn tableColumn_id;
-    @FXML TableColumn tableColumn_name;
-    @FXML TableRow<String> tableRow_user;
+    // Contacts
+    public Button button_exportPublicKey;
+    public Button button_importPublicKey;
+    public Button button_deleteContact;
+    @FXML Label label_userName;
+    @FXML Label label_setupStatus;
+    @FXML Label label_importPubKey;
+    @FXML Label label_exportPubKey;
+    @FXML TableView<User> tableView_users;
+    @FXML TableColumn<User, Integer> tableColumn_id;
+    @FXML TableColumn<User, String> tableColumn_name;
+
+    // New User
+    private File publicKeyFile;
+    public Button button_loadPublicKey;
+    public CheckBox checkBox_publicKey;
+    public TextField textField_UserName;
+    @FXML Label label_publicKey;
 
     public Controller() {
         userAdministration = new UserAdministration();
@@ -81,6 +93,17 @@ public class Controller {
         return "";
     }
 
+    /*
+     * TAB: Encrypt
+     */
+    public void updateEncryptButton() {
+        if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
+            button_encrypt.setDisable(true);
+        } else {
+            button_encrypt.setDisable(false);
+        }
+    }
+
     // Öffnet eine enie Scene für die Dateiauswahl
     // Speichert die Datei in die Variable document
     public void loadFile() {
@@ -90,6 +113,7 @@ public class Controller {
         if (document != null) {
             label_documentFileSize.setText(getFileSizeString(document.length()));
             label_documentName.setText(document.getName());
+            updateEncryptButton();
         }
     }
 
@@ -109,26 +133,37 @@ public class Controller {
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
             label_pictureResolution.setText("Info: Resolution of picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
+            updateEncryptButton();
         }
     }
 
-    public void loadEncryptedPicture() {
-        FileChooser fc = new FileChooser();
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
-        fc.setTitle("Load picture to extract document from..");
+    public void loadEncryptionUser() {
+        ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
+                .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
 
-        encryptedPicture = fc.showOpenDialog(new Stage());
-        if (encryptedPicture != null) {
-            label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
-            label_encryptedPictureName.setText(encryptedPicture.getName());
-        }
+        choiseBox_encryptionUser.setItems(userList);
+        choiseBox_encryptionUser.setConverter(new StringConverter<User>() {
+            @Override
+            public String toString(User user) {
+                return user.getName();
+            }
+
+            @Override
+            public User fromString(String s) {
+                return null;
+            }
+        });
+
+        choiseBox_encryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateEncryptButton());
     }
 
     // Verschlüsseln und Verstecken der Datei
     public void encrypt() throws Exception {
-        if (document == null || picture == null) {
+        if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
             return;
         }
+
+        User user = choiseBox_encryptionUser.getSelectionModel().getSelectedItem();
 
         pictureBuffered = ImageIO.read(picture);
         int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
@@ -141,7 +176,7 @@ public class Controller {
             return;
         }
 
-        BufferedImage encryptedPicture = Steganographie.hide(document, picture);
+        BufferedImage encryptedPicture = Steganographie.hide(document, picture, user.getSharedSecret());
 
         if (encryptedPicture != null) {
             FileChooser fc = new FileChooser();
@@ -158,21 +193,63 @@ public class Controller {
                 }
             }
         }
+
+        updateEncryptButton();
+    }
+
+    /*
+     * TAB: Decrypt
+     */
+    private void updateDecryptButton() {
+        if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
+            button_decrypt.setDisable(true);
+        } else {
+            button_decrypt.setDisable(false);
+        }
+    }
+
+    public void loadEncryptedPicture() {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
+        fc.setTitle("Load picture to extract document from..");
+
+        encryptedPicture = fc.showOpenDialog(new Stage());
+        if (encryptedPicture != null) {
+            label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
+            label_encryptedPictureName.setText(encryptedPicture.getName());
+            updateDecryptButton();
+        }
+    }
+
+    public void loadDecryptionUser() {
+        ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
+                .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
+
+        choiseBox_decryptionUser.setItems(userList);
+        choiseBox_decryptionUser.setConverter(new StringConverter<User>() {
+            @Override
+            public String toString(User user) {
+                return user.getName();
+            }
+
+            @Override
+            public User fromString(String s) {
+                return null;
+            }
+        });
+
+        choiseBox_decryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateDecryptButton());
     }
 
     // Liest die versteckte nachricht aus einem Bild und entschlüsselt sie
     public void decrypt() throws Exception {
-        if (encryptedPicture == null) {
+        if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
             return;
         }
 
-        byte[][] result = Steganographie.extract(encryptedPicture);
+        User user = choiseBox_decryptionUser.getSelectionModel().getSelectedItem();
 
-        if (result == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("This picture doesn't seem to contain any hidden files!");
-            alert.showAndWait();
-        }
+        byte[][] result = Steganographie.extract(encryptedPicture, user.getSharedSecret());
 
         String fileName = null;
         if (result != null && result[1] != null) {
@@ -210,39 +287,140 @@ public class Controller {
                 }
             }
         }
+
+        updateDecryptButton();
     }
 
-    public void listView_loadUsers() {
-        tableColumn_id.setCellValueFactory((Callback<TableColumn.CellDataFeatures<String[], String>, ObservableValue<String>>) p -> {
-            String[] x = p.getValue();
-            if (x != null && x.length>0) {
-                return new SimpleStringProperty(x[0]);
-            } else {
-                return new SimpleStringProperty("<no id>");
-            }
-        });
+    /*
+     * TAB: Contacts
+     */
+    public void resetTabContacts() {
+        clearSceneContacts();
+        loadUsers();
+    }
 
-        tableColumn_name.setCellValueFactory((Callback<TableColumn.CellDataFeatures<String[], String>, ObservableValue<String>>) p -> {
-            String[] x = p.getValue();
-            if (x != null && x.length>1) {
-                return new SimpleStringProperty(x[1]);
-            } else {
-                return new SimpleStringProperty("<no name>");
-            }
-        });
+    private void clearSceneContacts() {
+        label_userName.setVisible(false);
+        label_exportPubKey.setVisible(false);
+        button_exportPublicKey.setVisible(false);
+        label_setupStatus.setVisible(false);
+        label_importPubKey.setVisible(false);
+        button_importPublicKey.setVisible(false);
+        button_deleteContact.setVisible(false);
+    }
 
-        tableView_users.getItems().addAll(userAdministration.getIdAndName());
+    private void loadUsers() {
+        tableView_users.getItems().clear();
+
+        ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers());
+
+        tableColumn_id.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getId()).asObject());
+        tableColumn_name.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
+
+        tableView_users.setItems(userList);
     }
 
     public void selectUserInView() {
-        label_userName.setText("Id: " +  tableColumn_id.getCellData(tableView_users.getSelectionModel().getFocusedIndex()) +
-                               " Name: " + tableColumn_name.getCellData(tableView_users.getSelectionModel().getFocusedIndex()));
+        clearSceneContacts();
+
+        User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
+        if (selectedUser == null) {
+            return;
+        }
+
+        label_userName.setVisible(true);
+        label_userName.setText(selectedUser.getName());
+        label_exportPubKey.setVisible(true);
+        button_exportPublicKey.setVisible(true);
+
+        if (selectedUser.getSharedSecret().length == 1) {
+            label_setupStatus.setTextFill(Color.RED);
+            label_setupStatus.setText("Setup not completed!");
+            label_setupStatus.setVisible(true);
+
+            label_importPubKey.setText("To finish key exchange and generate symmetric crypto keys please import this persons public key.");
+            label_importPubKey.setVisible(true);
+            button_importPublicKey.setVisible(true);
+        } else {
+            label_setupStatus.setTextFill(Color.GREEN);
+            label_setupStatus.setText("Setup completed.");
+            label_setupStatus.setVisible(true);
+        }
+
+        button_deleteContact.setVisible(true);
+    }
+
+    public void exportPublicKey() {
+        User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
+        if (selectedUser == null) {
+            return;
+        }
+
+        FileChooser fc = new FileChooser();
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey");
+        fc.getExtensionFilters().add(extFilter);
+
+        fc.setInitialFileName("publicKey_for_" + selectedUser.getName().replaceAll("\\s+","") + ".pubKey");
+        fc.setTitle("Save public key for this contact..");
+
+        File file = fc.showSaveDialog(new Stage());
+
+        if (file != null) {
+            try (FileOutputStream os = new FileOutputStream(file.getPath())) {
+                os.write(selectedUser.getMyPublicKey());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void importPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
+        User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
+        if (selectedUser == null) {
+            return;
+        }
+
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey"));
+        fc.setTitle("Load public key for this contact..");
+
+        publicKeyFile = fc.showOpenDialog(new Stage());
+
+        if (publicKeyFile != null) {
+            byte[] publicKeyEnc = Files.readAllBytes(Paths.get(publicKeyFile.getPath()));
+            userAdministration.finishSetup(selectedUser.getId(), publicKeyEnc);
+        }
+
+        resetTabContacts();
+    }
+
+    public void deleteUser() throws IOException {
+        User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
+        if (selectedUser == null) {
+            return;
+        }
+
+        userAdministration.deleteUser(selectedUser.getId());
+
+        resetTabContacts();
+    }
+
+    /*
+     * TAB: New User
+     */
+    public void resetTabNewUser() {
+        textField_UserName.clear();
+        checkBox_publicKey.setSelected(false);
+        button_loadPublicKey.setVisible(false);
+
+        publicKeyFile = null;
+        label_publicKey.setText("");
+        label_publicKey.setVisible(false);
     }
 
     public void checkBoxState() {
         button_loadPublicKey.setVisible(!button_loadPublicKey.isVisible());
         label_publicKey.setVisible(!label_publicKey.isVisible());
-        label_publicKeyFile.setVisible(!label_publicKeyFile.isVisible());
     }
 
     public void loadPublicKey() {
@@ -252,7 +430,7 @@ public class Controller {
 
         publicKeyFile = fc.showOpenDialog(new Stage());
         if (publicKeyFile != null) {
-            label_publicKeyFile.setText(publicKeyFile.getName());
+            label_publicKey.setText("Public Key: " + publicKeyFile.getName());
         }
     }
 

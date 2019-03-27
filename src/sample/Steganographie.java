@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.scene.control.Alert;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -10,36 +12,21 @@ import java.util.Arrays;
 
 class Steganographie {
 
-    static BufferedImage hide(File document, File picture) throws Exception {
+    static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {
 
-        // TODO: Variabler AES Key
         // Dokument einlesen und mit AES verschlüsseln
         FileInputStream fos = new FileInputStream(document);
         byte[] documentBytes = new byte[(int) document.length()];
         fos.read(documentBytes);
         fos.close();
-        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, new byte[] {
-                (byte)0xe0, 0x4f,
-                (byte)0xd0, 0x20,
-                (byte)0xea, 0x3a, 0x69, 0x10,
-                (byte)0xa2,
-                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                (byte)0x9d
-        });
+        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, sharedSecret);
 
         // Flag zur Wiedererkennung des Textendes beim Extrahieren
         byte[] documentEndFlag = new byte[4];
         Arrays.fill(documentEndFlag, (byte) 88);
 
         // Dabeinamen extrahieren und verschlüsseln
-        byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), new byte[] {
-                (byte)0xe0, 0x4f,
-                (byte)0xd0, 0x20,
-                (byte)0xea, 0x3a, 0x69, 0x10,
-                (byte)0xa2,
-                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                (byte)0x9d
-        });
+        byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
 
         // Flag am Ende des Chiffretextes
         byte[] chipherEndFlag = new byte[4];
@@ -105,11 +92,9 @@ class Steganographie {
                 if (y >= height) {
                     level++;
                     if (level >= 2) {
-                        System.out.println("--ERROR: FILE TOO BIG, NEED MORE PIXELS");
                         return null;
                     }
 
-                    System.out.println("--WRITING TO 2ND LEVEL");
                     rgbMask = (byte) 0b1111110011;
                     shift = 2;
                     x = 0;
@@ -121,7 +106,7 @@ class Steganographie {
         return img;
     }
 
-    static byte[][] extract(File picture) throws Exception {
+    static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
         BufferedImage img = ImageIO.read(picture);
 
         boolean readFileType = false;
@@ -207,6 +192,9 @@ class Steganographie {
                 if (y >= height) {
                     level++;
                     if (level >= 2) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("This picture doesn't seem to contain any hidden files!");
+                        alert.showAndWait();
                         return null;
                     }
 
@@ -223,29 +211,22 @@ class Steganographie {
         byte[] encryptedDocumentBytes = new byte[flaggedEncryptedDocumentBytes.length - 4];
         System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
 
-        // TODO: Variabler AES Key
-        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, new byte[] {
-                (byte)0xe0, 0x4f,
-                (byte)0xd0, 0x20,
-                (byte)0xea, 0x3a, 0x69, 0x10,
-                (byte)0xa2,
-                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                (byte)0x9d
-        });
+        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, sharedSecret);
 
         byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
-        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, new byte[] {
-                (byte)0xe0, 0x4f,
-                (byte)0xd0, 0x20,
-                (byte)0xea, 0x3a, 0x69, 0x10,
-                (byte)0xa2,
-                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                (byte)0x9d
-        });
+        byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, sharedSecret);
 
-        return new byte[][]{documentBytes, fileNameBytes};
+        if (documentBytes == null && fileNameBytes == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Wrong decryption key!");
+            alert.showAndWait();
+            return null;
+        } else {
+            return new byte[][]{documentBytes, fileNameBytes};
+        }
+
     }
 }

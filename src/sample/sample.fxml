@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.media.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="405.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
       <TabPane prefHeight="405.0" prefWidth="750.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-          <Tab text="Encrypt">
+          <Tab onSelectionChanged="#loadEncryptionUser" text="Encrypt">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_encrypt" layoutX="624.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" text="Run Encryption" />
+                        <Button fx:id="button_encrypt" disable="true" layoutX="624.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" text="Run Encryption" />
                         <Button fx:id="button_loadFile" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadFile" prefHeight="27.0" prefWidth="112.0" text="Load File" />
                         <Label fx:id="label_documentName" layoutX="296.0" layoutY="19.0" />
                         <Button fx:id="button_choosePicture" layoutX="14.0" layoutY="54.0" mnemonicParsing="false" onAction="#loadPicture" text="Choose Picture" />
@@ -29,57 +23,57 @@
                         <Label layoutX="262.0" layoutY="59.0" text="File:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
                         <Label fx:id="label_pictureResolution" layoutX="14.0" layoutY="111.0" />
+                        <ChoiceBox fx:id="choiseBox_encryptionUser" layoutX="422.0" layoutY="331.0" onMouseClicked="#updateEncryptButton" prefHeight="27.0" prefWidth="190.0" />
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-          <Tab text="Decrypt">
+          <Tab onSelectionChanged="#loadDecryptionUser" text="Decrypt">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_decrypt" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" text="Run Decryption" />
+                        <Button fx:id="button_decrypt" disable="true" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" text="Run Decryption" />
                         <Button fx:id="button_chooseEncryptedPicture" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadEncryptedPicture" prefHeight="27.0" prefWidth="112.0" text="Choose Picture" />
                         <Label fx:id="label_encryptedPictureFileSize" layoutX="183.0" layoutY="19.0" />
                         <Label fx:id="label_encryptedPictureName" layoutX="296.0" layoutY="19.0" />
                         <Label layoutX="145.0" layoutY="19.0" text="Size:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
+                        <ChoiceBox fx:id="choiseBox_decryptionUser" layoutX="421.0" layoutY="331.0" prefHeight="27.0" prefWidth="190.0" />
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-          <Tab onSelectionChanged="#listView_loadUsers" text="Contacts">
+          <Tab onSelectionChanged="#resetTabContacts" text="Contacts">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="750.0">
                      <children>
-                        <Label fx:id="label_userName" layoutX="347.0" layoutY="14.0" text="Name" />
-                        <TextField layoutX="347.0" layoutY="121.0" />
-                        <Button layoutX="347.0" layoutY="48.0" mnemonicParsing="false" text="Generate Key for Exchange" />
-                        <Label layoutX="461.0" layoutY="43.0" />
-                        <Label layoutX="526.0" layoutY="52.0" text="Exchange Key" />
-                        <Button layoutX="506.0" layoutY="121.0" mnemonicParsing="false" text="Submit" />
-                        <Label layoutX="347.0" layoutY="92.0" text="Enter Exchanged Key" />
-                        <Label layoutX="347.0" layoutY="171.0" text="Gemeinsamer Schlüßel Generiert" />
-                        <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="377.0" prefWidth="313.0">
+                        <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="373.0" prefWidth="314.0">
                           <columns>
-                            <TableColumn fx:id="tableColumn_id" prefWidth="55.0" text="ID" />
-                            <TableColumn fx:id="tableColumn_name" prefWidth="257.0" text="NAME" />
+                            <TableColumn fx:id="tableColumn_id" prefWidth="63.0" resizable="false" text="ID" />
+                            <TableColumn fx:id="tableColumn_name" prefWidth="233.0" resizable="false" sortable="false" text="NAME" />
                           </columns>
                         </TableView>
+                        <Label fx:id="label_userName" layoutX="338.0" layoutY="20.0" />
+                        <Label fx:id="label_exportPubKey" layoutX="338.0" layoutY="69.0" prefHeight="17.0" prefWidth="383.0" text="This person might need your public key to finish setup." wrapText="true" />
+                        <Button fx:id="button_exportPublicKey" layoutX="339.0" layoutY="97.0" mnemonicParsing="false" onAction="#exportPublicKey" text="Export Public Key" />
+                        <Label fx:id="label_setupStatus" layoutX="338.0" layoutY="180.0" wrapText="true" />
+                        <Label fx:id="label_importPubKey" layoutX="338.0" layoutY="204.0" prefHeight="34.0" prefWidth="383.0" text="To finish key exchange and generate symmetric crypto keys please import this persons public key." wrapText="true" />
+                        <Button fx:id="button_importPublicKey" layoutX="338.0" layoutY="251.0" mnemonicParsing="false" onAction="#importPublicKey" text="Import Public Key" />
+                        <Button fx:id="button_deleteContact" layoutX="626.0" layoutY="331.0" mnemonicParsing="false" onAction="#deleteUser" text="Delete Contact" />
                      </children>
                   </AnchorPane>
               </content>
             </Tab>
-            <Tab text="New User">
+            <Tab onSelectionChanged="#resetTabNewUser" text="New Contact">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <TextField fx:id="textField_UserName" layoutX="81.0" layoutY="19.0" prefHeight="27.0" prefWidth="655.0" />
                         <Label layoutX="14.0" layoutY="24.0" text="Name:" />
                         <Button fx:id="button_addUser" layoutX="641.0" layoutY="331.0" mnemonicParsing="false" onAction="#addUser" text="Add Contact" />
-                        <CheckBox fx:id="checkBox_publicKey" layoutX="14.0" layoutY="73.0" mnemonicParsing="false" onAction="#checkBoxState" text="This User initiated the Key Exchange" />
+                        <CheckBox fx:id="checkBox_publicKey" layoutX="14.0" layoutY="73.0" mnemonicParsing="false" onAction="#checkBoxState" text="This person initialized the key exchange." />
                         <Label fx:id="label_publicKey" layoutX="149.0" layoutY="117.0" text="Public Key:" visible="false" />
                         <Button fx:id="button_loadPublicKey" layoutX="14.0" layoutY="112.0" mnemonicParsing="false" onAction="#loadPublicKey" text="Load Public Key" visible="false" />
-                        <Label fx:id="label_publicKeyFile" layoutX="230.0" layoutY="117.0" visible="false" />
                      </children>
                   </AnchorPane>
               </content>

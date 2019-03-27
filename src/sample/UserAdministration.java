@@ -12,8 +12,8 @@ import java.util.*;
 
 class UserAdministration {
 
+    private final String filename = System.getProperty("user.home") + "/cryptor/users.cryptor";
     private NavigableMap<Integer, User> users;
-    private String filename = "Users.txt";
 
     UserAdministration() {
         users = new TreeMap<>();
@@ -26,19 +26,6 @@ class UserAdministration {
             e.printStackTrace();
         }
     }
-
-    /*
-    public void demo(byte[] pubkey) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-
-            if (entry.getValue().getId() == 2) {
-                entry.getValue().setSharedSecret(DiffieHellman.aliceComplete(entry.getValue().getMyPrivKey(), pubkey));
-            }
-        }
-
-        saveUsers();
-    }
-    */
 
     private void usersToString() {
         for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
@@ -53,6 +40,16 @@ class UserAdministration {
                     + "\n"
             );
         }
+    }
+
+    ArrayList<User> getUsers() {
+        ArrayList<User> userList = new ArrayList<>();
+
+        for (Map.Entry<Integer, User> entry : this.users.entrySet()) {
+            userList.add(entry.getValue());
+        }
+
+        return userList;
     }
 
     private int generateNewID() {
@@ -75,8 +72,8 @@ class UserAdministration {
         return user;
     }
 
-    User createUser(String name, byte[] publicKey) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
-        byte[][] bob = DiffieHellman.bob(publicKey);
+    User createUser(String name, byte[] publicKeyEnc) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        byte[][] bob = DiffieHellman.bob(publicKeyEnc);
         int id = generateNewID();
 
         User user =  new User(id, name, bob[0], bob[1], bob[2]);
@@ -84,6 +81,28 @@ class UserAdministration {
         saveUsers();
 
         return user;
+    }
+
+    void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+
+            if (entry.getValue().getId() == id) {
+                entry.getValue().setSharedSecret(DiffieHellman.aliceComplete(entry.getValue().getMyPrivKey(), publicKeyEnc));
+            }
+        }
+
+        saveUsers();
+    }
+
+    void deleteUser(int id) throws IOException {
+        for (Map.Entry<Integer, User> entry : users.entrySet()) {
+
+            if (entry.getValue().getId() == id) {
+                users.remove(entry.getKey());
+            }
+        }
+
+        saveUsers();
     }
 
     private void readUsers() throws IOException{
@@ -163,22 +182,6 @@ class UserAdministration {
 
         fos.flush();
         fos.close();
-    }
-
-    public String[][] getIdAndName() {
-        String[][] idAndName = new String[users.size()][2];
-        int i = 0;
-
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-            User user = entry.getValue();
-
-            idAndName[i][0] = Integer.toString(user.getId());
-            idAndName[i][1] = user.getName();
-
-            i++;
-        }
-
-        return idAndName;
     }
 }
 
