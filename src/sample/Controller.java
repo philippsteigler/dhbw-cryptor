@@ -101,7 +101,7 @@ public class Controller {
     /*
      * TAB: Encrypt
      */
-    public void updateEncryptButton() {
+    private void updateEncryptButton() {
         if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
             button_encrypt.setDisable(true);
         } else {
@@ -198,7 +198,7 @@ public class Controller {
                 try {
                     ImageIO.write(encryptedPicture, "png", file);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Error while writing encoded image to file: " + e.toString());
                 }
             }
         }
@@ -301,7 +301,7 @@ public class Controller {
                         os.write(result[0]);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Error while writing decrypted document to file: " + e.toString());
                 }
             }
         }
@@ -387,7 +387,7 @@ public class Controller {
             try (FileOutputStream os = new FileOutputStream(file.getPath())) {
                 os.write(selectedUser.getMyPublicKey());
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error while writing public key to file: " + e.toString());
             }
         }
     }
@@ -480,7 +480,7 @@ public class Controller {
                 try (FileOutputStream os = new FileOutputStream(file.getPath())) {
                     os.write(user.getMyPublicKey());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Error while writing public key to file: " + e.toString());
                 }
             }
         } else if (checkBox_publicKey.isSelected() && !textField_UserName.getText().isEmpty() && publicKeyFile != null) {
@@ -504,7 +504,7 @@ public class Controller {
                 try (FileOutputStream os = new FileOutputStream(file.getPath())) {
                     os.write(user.getMyPublicKey());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Error while writing public key to file: " + e.toString());
                 }
             }
         } else {

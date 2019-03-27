@@ -20,25 +20,9 @@ class UserAdministration {
 
         try {
             readUsers();
-            usersToString();
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void usersToString() {
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-            String key = entry.getKey().toString();
-            User value = entry.getValue();
-
-            System.out.println("Map-Key/ID: " + key + "/" + value.getId()
-                    + "\nName: " + value.getName()
-                    + "\nPrivKey: " + Arrays.toString(value.getMyPrivKey())
-                    + "\nPubKey; " + Arrays.toString(value.getMyPublicKey())
-                    + "\nSecret: " + Arrays.toString(value.getSharedSecret())
-                    + "\n"
-            );
         }
     }
 
@@ -96,7 +80,6 @@ class UserAdministration {
 
     void deleteUser(int id) throws IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
-
             if (entry.getValue().getId() == id) {
                 users.remove(entry.getKey());
                 break;
