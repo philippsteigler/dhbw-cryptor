@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -11,19 +13,18 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_encrypt" disable="true" layoutX="624.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" text="Run Encryption" />
-                        <Button fx:id="button_loadFile" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadFile" prefHeight="27.0" prefWidth="112.0" text="Load File" />
-                        <Label fx:id="label_documentName" layoutX="296.0" layoutY="19.0" />
-                        <Button fx:id="button_choosePicture" layoutX="14.0" layoutY="54.0" mnemonicParsing="false" onAction="#loadPicture" text="Choose Picture" />
-                        <Label fx:id="label_pictureName" layoutX="296.0" layoutY="59.0" />
-                        <Label fx:id="label_documentFileSize" layoutX="183.0" layoutY="19.0" />
-                        <Label fx:id="label_pictureFileSize" layoutX="183.0" layoutY="59.0" />
-                        <Label layoutX="145.0" layoutY="19.0" text="Size:" />
-                        <Label layoutX="145.0" layoutY="59.0" text="Size:" />
-                        <Label layoutX="262.0" layoutY="59.0" text="File:" />
-                        <Label layoutX="262.0" layoutY="19.0" text="File:" />
-                        <Label fx:id="label_pictureResolution" layoutX="14.0" layoutY="111.0" />
-                        <ChoiceBox fx:id="choiseBox_encryptionUser" layoutX="422.0" layoutY="331.0" onMouseClicked="#updateEncryptButton" prefHeight="27.0" prefWidth="190.0" />
+                        <Button fx:id="button_encrypt" disable="true" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" prefHeight="27.0" prefWidth="113.0" text="Run Encryption" />
+                        <Button layoutX="14.0" layoutY="78.0" mnemonicParsing="false" onAction="#loadFile" prefHeight="27.0" prefWidth="112.0" text="Load File" />
+                        <Label fx:id="label_documentFileSize" layoutX="162.0" layoutY="83.0" />
+                        <Label fx:id="label_documentName" layoutX="288.0" layoutY="83.0" prefHeight="17.0" prefWidth="446.0" />
+                        <Button layoutX="14.0" layoutY="118.0" mnemonicParsing="false" onAction="#loadPicture" text="Choose Picture" />
+                        <Label fx:id="label_pictureFileSize" layoutX="162.0" layoutY="123.0" />
+                        <Label fx:id="label_pictureName" layoutX="288.0" layoutY="123.0" prefHeight="17.0" prefWidth="445.0" />
+                        <ChoiceBox fx:id="choiseBox_encryptionUser" layoutX="421.0" layoutY="331.0" prefHeight="27.0" prefWidth="190.0" />
+                        <ImageView fx:id="imageView_encrypt" fitHeight="194.0" fitWidth="393.0" layoutX="14.0" layoutY="164.0" pickOnBounds="true" preserveRatio="true" />
+                        <Label fx:id="label_pictureResolutionEncryption" alignment="TOP_LEFT" layoutX="422.0" layoutY="164.0" prefHeight="138.0" prefWidth="309.0" wrapText="true" />
+                        <Label alignment="TOP_LEFT" layoutX="14.0" layoutY="14.0" prefHeight="55.0" prefWidth="717.0" text="Cryptor is a encryption and steganography tool. It first encrypts any file with secure AES-256 encryption using keys exchanged with Diffie-Hellman key exchange protocol. Cryptor then hides your document in any PNG picture by encoding information into each pixel." wrapText="true" />
+                        <Label layoutX="422.0" layoutY="306.0" prefHeight="17.0" prefWidth="136.0" text="Encrypt with key for.." />
                      </children>
                   </AnchorPane>
             </content>
@@ -32,13 +33,15 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_decrypt" disable="true" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" text="Run Decryption" />
-                        <Button fx:id="button_chooseEncryptedPicture" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadEncryptedPicture" prefHeight="27.0" prefWidth="112.0" text="Choose Picture" />
-                        <Label fx:id="label_encryptedPictureFileSize" layoutX="183.0" layoutY="19.0" />
-                        <Label fx:id="label_encryptedPictureName" layoutX="296.0" layoutY="19.0" />
-                        <Label layoutX="145.0" layoutY="19.0" text="Size:" />
-                        <Label layoutX="262.0" layoutY="19.0" text="File:" />
+                        <Label alignment="TOP_LEFT" layoutX="14.0" layoutY="14.0" prefHeight="55.0" prefWidth="717.0" text="To extract the document encoded into a picture use this tab. Cryptor scans the imported picture to evaluate if any files are hidden are to be found. If that's the case the original document will be restored and decrypted - assuming the correct key was used." wrapText="true" />
+                        <Button fx:id="button_decrypt" disable="true" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" prefHeight="27.0" prefWidth="113.0" text="Run Decryption" />
+                        <Button layoutX="14.0" layoutY="78.0" mnemonicParsing="false" onAction="#loadEncryptedPicture" prefHeight="27.0" prefWidth="112.0" text="Choose Picture" />
+                        <Label fx:id="label_encryptedPictureFileSize" layoutX="161.0" layoutY="83.0" />
+                        <Label fx:id="label_encryptedPictureName" layoutX="288.0" layoutY="83.0" prefHeight="17.0" prefWidth="446.0" />
                         <ChoiceBox fx:id="choiseBox_decryptionUser" layoutX="421.0" layoutY="331.0" prefHeight="27.0" prefWidth="190.0" />
+                        <ImageView fx:id="imageView_decrypt" fitHeight="194.0" fitWidth="393.0" layoutX="14.0" layoutY="164.0" pickOnBounds="true" preserveRatio="true" />
+                        <Label fx:id="label_pictureResolutionDecryption" alignment="TOP_LEFT" layoutX="422.0" layoutY="164.0" prefHeight="138.0" prefWidth="309.0" wrapText="true" />
+                        <Label layoutX="421.0" layoutY="306.0" prefHeight="17.0" prefWidth="136.0" text="Decrypt with key for.." />
                      </children>
                   </AnchorPane>
             </content>
@@ -47,10 +50,10 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="370.0" prefWidth="750.0">
                      <children>
-                        <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="373.0" prefWidth="314.0">
+                        <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="373.0" prefWidth="317.0">
                           <columns>
                             <TableColumn fx:id="tableColumn_id" prefWidth="63.0" resizable="false" text="ID" />
-                            <TableColumn fx:id="tableColumn_name" prefWidth="233.0" resizable="false" sortable="false" text="NAME" />
+                            <TableColumn fx:id="tableColumn_name" prefWidth="252.0" resizable="false" text="NAME" />
                           </columns>
                         </TableView>
                         <Label fx:id="label_userName" layoutX="338.0" layoutY="20.0" />
@@ -70,9 +73,9 @@
                      <children>
                         <TextField fx:id="textField_UserName" layoutX="81.0" layoutY="19.0" prefHeight="27.0" prefWidth="655.0" />
                         <Label layoutX="14.0" layoutY="24.0" text="Name:" />
-                        <Button fx:id="button_addUser" layoutX="641.0" layoutY="331.0" mnemonicParsing="false" onAction="#addUser" text="Add Contact" />
+                        <Button layoutX="641.0" layoutY="331.0" mnemonicParsing="false" onAction="#addUser" text="Add Contact" />
                         <CheckBox fx:id="checkBox_publicKey" layoutX="14.0" layoutY="73.0" mnemonicParsing="false" onAction="#checkBoxState" text="This person initialized the key exchange." />
-                        <Label fx:id="label_publicKey" layoutX="149.0" layoutY="117.0" text="Public Key:" visible="false" />
+                        <Label fx:id="label_publicKey" layoutX="149.0" layoutY="117.0" visible="false" />
                         <Button fx:id="button_loadPublicKey" layoutX="14.0" layoutY="112.0" mnemonicParsing="false" onAction="#loadPublicKey" text="Load Public Key" visible="false" />
                      </children>
                   </AnchorPane>

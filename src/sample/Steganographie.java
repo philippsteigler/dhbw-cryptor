@@ -193,12 +193,11 @@ class Steganographie {
                     level++;
                     if (level >= 2) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setContentText("This picture doesn't seem to contain any hidden files!");
+                        alert.setContentText("This picture doesn't seem to contain any hidden files.");
                         alert.showAndWait();
                         return null;
                     }
 
-                    System.out.println("--WRITING TO 2ND LEVEL");
                     rgbMask = 0b00001100;
                     shift = 4;
                     x = 0;
@@ -221,7 +220,7 @@ class Steganographie {
 
         if (documentBytes == null && fileNameBytes == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Wrong decryption key!");
+            alert.setContentText("Wrong decryption key.");
             alert.showAndWait();
             return null;
         } else {

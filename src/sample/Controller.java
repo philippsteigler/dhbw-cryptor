@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -40,6 +42,8 @@ public class Controller {
     @FXML Label label_documentName;
     @FXML Label label_pictureFileSize;
     @FXML Label label_pictureName;
+    @FXML Label label_pictureResolutionEncryption;
+    @FXML ImageView imageView_encrypt;
     @FXML ChoiceBox<User> choiseBox_encryptionUser;
     @FXML Button button_encrypt;
 
@@ -47,7 +51,8 @@ public class Controller {
     private File encryptedPicture;
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
-    @FXML Label label_pictureResolution;
+    @FXML Label label_pictureResolutionDecryption;
+    @FXML ImageView imageView_decrypt;
     @FXML ChoiceBox<User> choiseBox_decryptionUser;
     @FXML Button button_decrypt;
 
@@ -111,8 +116,8 @@ public class Controller {
 
         document = fc.showOpenDialog(new Stage());
         if (document != null) {
-            label_documentFileSize.setText(getFileSizeString(document.length()));
-            label_documentName.setText(document.getName());
+            label_documentFileSize.setText("Size: " + getFileSizeString(document.length()));
+            label_documentName.setText("File: " + document.getName());
             updateEncryptButton();
         }
     }
@@ -126,13 +131,17 @@ public class Controller {
 
         picture = fc.showOpenDialog(new Stage());
         if (picture != null) {
-            label_pictureFileSize.setText(getFileSizeString(picture.length()));
-            label_pictureName.setText(picture.getName());
+            label_pictureFileSize.setText("Size: " + getFileSizeString(picture.length()));
+            label_pictureName.setText("File: " + picture.getName());
 
             pictureBuffered = ImageIO.read(picture);
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
-            label_pictureResolution.setText("Info: Resolution of picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
+            label_pictureResolutionEncryption.setText("Information:\n\nResolution of picture:\n" + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels)\n\nMaximum capacity:\n" + getFileSizeString(imgWidth*imgHeight*2));
+
+            Image image = new Image(picture.toURI().toString());
+            imageView_encrypt.setImage(image);
+
             updateEncryptButton();
         }
     }
@@ -208,15 +217,24 @@ public class Controller {
         }
     }
 
-    public void loadEncryptedPicture() {
+    public void loadEncryptedPicture() throws IOException {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
         fc.setTitle("Load picture to extract document from..");
 
         encryptedPicture = fc.showOpenDialog(new Stage());
         if (encryptedPicture != null) {
-            label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
-            label_encryptedPictureName.setText(encryptedPicture.getName());
+            label_encryptedPictureFileSize.setText("Size: " + getFileSizeString(encryptedPicture.length()));
+            label_encryptedPictureName.setText("File: " + encryptedPicture.getName());
+
+            pictureBuffered = ImageIO.read(encryptedPicture);
+            int imgWidth = pictureBuffered.getWidth();
+            int imgHeight = pictureBuffered.getHeight();
+            label_pictureResolutionDecryption.setText("Information:\n\nResolution of picture:\n" + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels)\n\nMaximum capacity:\n" + getFileSizeString(imgWidth*imgHeight*2));
+
+            Image image = new Image(encryptedPicture.toURI().toString());
+            imageView_decrypt.setImage(image);
+
             updateDecryptButton();
         }
     }
@@ -437,7 +455,7 @@ public class Controller {
     public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, IOException {
         if (textField_UserName.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please enter a name!");
+            alert.setContentText("Please enter a name.");
             alert.showAndWait();
             return;
         }
@@ -491,7 +509,7 @@ public class Controller {
             }
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Please load this persons public key file!");
+            alert.setContentText("Please load this persons public key file.");
             alert.showAndWait();
         }
     }
