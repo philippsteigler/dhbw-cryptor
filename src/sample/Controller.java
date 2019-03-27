@@ -200,7 +200,7 @@ public class Controller {
     /*
      * TAB: Decrypt
      */
-    public void updateDecryptButton() {
+    private void updateDecryptButton() {
         if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
             button_decrypt.setDisable(true);
         } else {
