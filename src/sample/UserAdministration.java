@@ -94,17 +94,6 @@ class UserAdministration {
         saveUsers();
     }
 
-    void restartSetup(int id) throws IOException {
-        for (Map.Entry<Integer, User> entry : users.entrySet()) {
-
-            if (entry.getValue().getId() == id) {
-                entry.getValue().setSharedSecret(new byte[1]);
-            }
-        }
-
-        saveUsers();
-    }
-
     void deleteUser(int id) throws IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
 

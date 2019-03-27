@@ -36,7 +36,7 @@ public class User {
         return sharedSecret;
     }
 
-    public void setSharedSecret(byte[] sharedSecret) {
+    void setSharedSecret(byte[] sharedSecret) {
         this.sharedSecret = sharedSecret;
     }
 }

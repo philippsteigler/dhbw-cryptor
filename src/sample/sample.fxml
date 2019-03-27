@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.media.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="405.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
       <TabPane prefHeight="405.0" prefWidth="750.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-          <Tab text="Encrypt">
+          <Tab onSelectionChanged="#loadEncryptionUser" text="Encrypt">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_encrypt" layoutX="624.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" text="Run Encryption" />
+                        <Button fx:id="button_encrypt" disable="true" layoutX="624.0" layoutY="331.0" mnemonicParsing="false" onAction="#encrypt" text="Run Encryption" />
                         <Button fx:id="button_loadFile" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadFile" prefHeight="27.0" prefWidth="112.0" text="Load File" />
                         <Label fx:id="label_documentName" layoutX="296.0" layoutY="19.0" />
                         <Button fx:id="button_choosePicture" layoutX="14.0" layoutY="54.0" mnemonicParsing="false" onAction="#loadPicture" text="Choose Picture" />
@@ -29,20 +23,22 @@
                         <Label layoutX="262.0" layoutY="59.0" text="File:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
                         <Label fx:id="label_pictureResolution" layoutX="14.0" layoutY="111.0" />
+                        <ChoiceBox fx:id="choiseBox_encryptionUser" layoutX="422.0" layoutY="331.0" onMouseClicked="#updateEncryptButton" prefHeight="27.0" prefWidth="190.0" />
                      </children>
                   </AnchorPane>
             </content>
           </Tab>
-          <Tab text="Decrypt">
+          <Tab onSelectionChanged="#loadDecryptionUser" text="Decrypt">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Button fx:id="button_decrypt" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" text="Run Decryption" />
+                        <Button fx:id="button_decrypt" disable="true" layoutX="623.0" layoutY="331.0" mnemonicParsing="false" onAction="#decrypt" text="Run Decryption" />
                         <Button fx:id="button_chooseEncryptedPicture" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#loadEncryptedPicture" prefHeight="27.0" prefWidth="112.0" text="Choose Picture" />
                         <Label fx:id="label_encryptedPictureFileSize" layoutX="183.0" layoutY="19.0" />
                         <Label fx:id="label_encryptedPictureName" layoutX="296.0" layoutY="19.0" />
                         <Label layoutX="145.0" layoutY="19.0" text="Size:" />
                         <Label layoutX="262.0" layoutY="19.0" text="File:" />
+                        <ChoiceBox fx:id="choiseBox_decryptionUser" layoutX="421.0" layoutY="331.0" prefHeight="27.0" prefWidth="190.0" />
                      </children>
                   </AnchorPane>
             </content>

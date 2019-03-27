@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -25,6 +26,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.DecimalFormat;
+import java.util.stream.Collectors;
 
 public class Controller {
 
@@ -38,12 +40,16 @@ public class Controller {
     @FXML Label label_documentName;
     @FXML Label label_pictureFileSize;
     @FXML Label label_pictureName;
+    @FXML ChoiceBox<User> choiseBox_encryptionUser;
+    @FXML Button button_encrypt;
 
     // Decrypt
     private File encryptedPicture;
     @FXML Label label_encryptedPictureFileSize;
     @FXML Label label_encryptedPictureName;
     @FXML Label label_pictureResolution;
+    @FXML ChoiceBox<User> choiseBox_decryptionUser;
+    @FXML Button button_decrypt;
 
     // Contacts
     public Button button_exportPublicKey;
@@ -90,6 +96,13 @@ public class Controller {
     /*
      * TAB: Encrypt
      */
+    public void updateEncryptButton() {
+        if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
+            button_encrypt.setDisable(true);
+        } else {
+            button_encrypt.setDisable(false);
+        }
+    }
 
     // Öffnet eine enie Scene für die Dateiauswahl
     // Speichert die Datei in die Variable document
@@ -100,6 +113,7 @@ public class Controller {
         if (document != null) {
             label_documentFileSize.setText(getFileSizeString(document.length()));
             label_documentName.setText(document.getName());
+            updateEncryptButton();
         }
     }
 
@@ -119,14 +133,37 @@ public class Controller {
             int imgWidth = pictureBuffered.getWidth();
             int imgHeight = pictureBuffered.getHeight();
             label_pictureResolution.setText("Info: Resolution of picture: " + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels). This picture can store up to " + getFileSizeString(imgWidth*imgHeight*2) + ".");
+            updateEncryptButton();
         }
+    }
+
+    public void loadEncryptionUser() {
+        ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
+                .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
+
+        choiseBox_encryptionUser.setItems(userList);
+        choiseBox_encryptionUser.setConverter(new StringConverter<User>() {
+            @Override
+            public String toString(User user) {
+                return user.getName();
+            }
+
+            @Override
+            public User fromString(String s) {
+                return null;
+            }
+        });
+
+        choiseBox_encryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateEncryptButton());
     }
 
     // Verschlüsseln und Verstecken der Datei
     public void encrypt() throws Exception {
-        if (document == null || picture == null) {
+        if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
             return;
         }
+
+        User user = choiseBox_encryptionUser.getSelectionModel().getSelectedItem();
 
         pictureBuffered = ImageIO.read(picture);
         int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
@@ -139,7 +176,7 @@ public class Controller {
             return;
         }
 
-        BufferedImage encryptedPicture = Steganographie.hide(document, picture);
+        BufferedImage encryptedPicture = Steganographie.hide(document, picture, user.getSharedSecret());
 
         if (encryptedPicture != null) {
             FileChooser fc = new FileChooser();
@@ -156,11 +193,21 @@ public class Controller {
                 }
             }
         }
+
+        updateEncryptButton();
     }
 
     /*
      * TAB: Decrypt
      */
+    public void updateDecryptButton() {
+        if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
+            button_decrypt.setDisable(true);
+        } else {
+            button_decrypt.setDisable(false);
+        }
+    }
+
     public void loadEncryptedPicture() {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
@@ -170,22 +217,39 @@ public class Controller {
         if (encryptedPicture != null) {
             label_encryptedPictureFileSize.setText(getFileSizeString(encryptedPicture.length()));
             label_encryptedPictureName.setText(encryptedPicture.getName());
+            updateDecryptButton();
         }
+    }
+
+    public void loadDecryptionUser() {
+        ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
+                .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
+
+        choiseBox_decryptionUser.setItems(userList);
+        choiseBox_decryptionUser.setConverter(new StringConverter<User>() {
+            @Override
+            public String toString(User user) {
+                return user.getName();
+            }
+
+            @Override
+            public User fromString(String s) {
+                return null;
+            }
+        });
+
+        choiseBox_decryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateDecryptButton());
     }
 
     // Liest die versteckte nachricht aus einem Bild und entschlüsselt sie
     public void decrypt() throws Exception {
-        if (encryptedPicture == null) {
+        if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
             return;
         }
 
-        byte[][] result = Steganographie.extract(encryptedPicture);
+        User user = choiseBox_decryptionUser.getSelectionModel().getSelectedItem();
 
-        if (result == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("This picture doesn't seem to contain any hidden files!");
-            alert.showAndWait();
-        }
+        byte[][] result = Steganographie.extract(encryptedPicture, user.getSharedSecret());
 
         String fileName = null;
         if (result != null && result[1] != null) {
@@ -223,6 +287,8 @@ public class Controller {
                 }
             }
         }
+
+        updateDecryptButton();
     }
 
     /*
@@ -327,18 +393,6 @@ public class Controller {
 
         resetTabContacts();
     }
-
-    public void newKey() throws IOException {
-        User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
-        if (selectedUser == null) {
-            return;
-        }
-
-        userAdministration.restartSetup(selectedUser.getId());
-
-        resetTabContacts();
-    }
-
 
     public void deleteUser() throws IOException {
         User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
