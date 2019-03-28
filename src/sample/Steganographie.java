@@ -91,18 +91,18 @@ class Steganographie {
         byte[] compressedDocumentBytes = zip(documentBytes);
         byte[] encryptedDocumentBytes = AES.encrypt(compressedDocumentBytes, sharedSecret);
 
-        // Erstelle eine Byte-Folge als Flag zur Erkennung vom Ende des Dokuments.
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des Dokuments.
         byte[] documentEndFlag = new byte[4];
         Arrays.fill(documentEndFlag, (byte) 88);
 
-        // Extrahiere den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
+        // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
         byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
 
-        // Erstelle eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
         byte[] chipherEndFlag = new byte[4];
         Arrays.fill(chipherEndFlag, (byte) 42);
 
-        // Füge die Byte-Arrays zu einem gesamten Chiffretext zusammen.
+        // Fügt die Byte-Arrays zu einem gesamten Chiffretext zusammen.
         // Dokument (zipped, encrypted) --> Dokument-Flag --> Dateityp (encrypted) --> Ende-Flag
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.write(encryptedDocumentBytes);
@@ -193,9 +193,27 @@ class Steganographie {
             }
         }
 
+        // Rückgabewert ist das manipulierte Bild, in dem ein verschlüsseltes Dokument versteckt wurde.
         return img;
     }
 
+    /*
+     * Funktion zum Extrahieren eines Dokuments, das mit Cryptor in einem PNG-Bild versteckt wurde.
+     *
+     * Der Vorgang läuft analog zum Verstecken ab - nur Rückwärts.
+     * Als erstes wird der Chiffretext aus den Pixeln des Bildes extrahiert. Dabei werden jeweils die letzten beiden
+     * Bits der ARGB-Bytes zu einem Chiffretext-Byte zusammengesetzt. Die beim Verstecken codierten Flags kennzeichnen
+     * an dieser Stelle das Ende des Dokuments und des mitgelieferten Dateinamens.
+     *
+     * Wurde kein Flag erfasst, so werden nach Durchlaufen aller Pixel auf der nächsthöheren Ebene die Bits 3 und 4
+     * ausgewertet. Der extrahierte Chiffretext wird anschließend unter Verwendung eines geheimen Keys entschlüsselt -
+     * vorausgesetzt es handelt sich um den gleichen Key wie bei der Verschlüsselung. War dies erfolgreich, so wird die
+     * entschlüsselte Datei nun mit GZIP dekomprimiert.
+     *
+     * Das Ergebnis ist eine entschlüsselte Datei und deren urspürnglicher Dateiname mit Dateityp, sodass die originale
+     * Datei vollständig wiederhergestellt werden kann. Wurde auf der zweiten Ebene auch kein Ende-Flag erfasst, so
+     * bricht der Algorithmus ab, da keine versteckte Datei im PNG-Bild erfasst wurde.
+     */
     static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
         BufferedImage img = ImageIO.read(picture);
 

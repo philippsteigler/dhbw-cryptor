@@ -11,9 +11,13 @@ import javax.crypto.interfaces.*;
  *
  * Hierfür wird das bekannte Diffie-Hellman-Key-Exchange (DHKE) Protokoll verwendet. Bei diesem werden über einen unsicheren
  * Kanal öffentliche Informationen ausgetauscht, aus denen anschließend von beiden Kommunikationspartnern ein
- * gemeinsames Geheimnis berechnet wird.
+ * gemeinsames Geheimnis berechnet wird. Dieses gemeinsame Geheimnis wird später für die Erzeugung von symmetrischen
+ * Schlüsseln für AES verwendet.
  *
- * Dieses gemeinsame Geheimnis wird später für die Erzeugung von symmetrischen Schlüsseln für AES verwendet.
+ * Das Prinzip dahinter besteht darin, dass Alice auf der einen Seite den Schlüsselaustausch startet und ein Public-
+ * Private-Key-Pair erzeugt. Alice übermittelt ihren Public-Key an Bob. Dieser erzeugt auf der anderen Seite ebenfalls
+ * ein Public-Private-Key-Pair, allerdings unter Verwendung von Alices' Public-Key, da somit beide Kommunikationspartner
+ * ein gemeinsames Geheimnis berechnen können.
  */
 class DiffieHellman {
 
