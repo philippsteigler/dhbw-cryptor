@@ -7,7 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
  * Klasse zur Ver- und Entschlüsselung von beliebigen Byte-Strömen, wie beispielsweise ein Dokument als Bytes.
  * Als sicheres, etabliertes Verfahren wird hier der symmetrische AES-256 Algorithmus verwendet.
  *
- * Der Schlüssel wird dafür vom gemeinsamen Shared-Secret beider Kommunikationspartner abgeleitet, welches jeweils
+ * Der Schlüssel wird dafür vom gemeinsamen Shared-Secret beider Kommunikationspartner abgeleitet, welches ebenfalls
  * an die Methoden übergeben wird.
  */
 class AES {
