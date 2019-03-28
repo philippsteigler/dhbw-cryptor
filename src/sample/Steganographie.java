@@ -10,6 +10,17 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
+/*
+ * Klasse zum Verstecken und Extrahieren von Informationen in/aus Bildern.
+ * Hierfür wurde ein eigenes proprietäres Verfahren entwickelt.
+ *
+ * Zunächst wird das eingelesene Dokument mit einem bekannten und sicheren Verfahren verschlüsselt.
+ * Anschließend wird der Chiffretext in die einzelnen Pixel eines PNG-Bildes codiert.
+ *
+ * Bei diesem Verfahren werden jeweils die niedrigsten Bits der ARGB-Werte mit Informationen über die verschlüsselte
+ * Datei überschtieben. Anschließend können diese Daten auf umgekehrten Weg extrahiert und zur originalen Datei
+ * zusammengesetzt werden - vorausgesetzt die Entschlüsselung war erfolgreich.
+ */
 class Steganographie {
 
     static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {

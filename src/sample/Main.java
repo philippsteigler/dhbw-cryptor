@@ -28,7 +28,7 @@ public class Main extends Application {
             try {
                 cryptorPath.mkdir();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Error while setting up environment: " + e.toString());
             }
         }
     }

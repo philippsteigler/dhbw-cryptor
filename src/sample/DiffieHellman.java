@@ -6,8 +6,20 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import javax.crypto.interfaces.*;
 
+/*
+ * Klasse zum sicheren Austausch von symmetrischen Keys zur Ver- und Entschlüsselung.
+ *
+ * Hierfür wird das bekannte Diffie-Hellman-Key-Exchange (DHKE) Protokoll verwendet. Bei diesem werden über einen unsicheren
+ * Kanal öffentliche Informationen ausgetauscht, aus denen anschließend von beiden Kommunikationspartnern ein
+ * gemeinsames Geheimnis berechnet wird.
+ *
+ * Dieses gemeinsame Geheimnis wird später für die Erzeugung von symmetrischen Schlüsseln für AES verwendet.
+ */
 class DiffieHellman {
 
+    /*
+     * Diese Methode initialisiert den DHKE.
+     */
     static byte[][] alice() throws NoSuchAlgorithmException, InvalidKeyException {
         KeyPairGenerator aliceKpairGen = KeyPairGenerator.getInstance("DH");
         aliceKpairGen.initialize(2048);
