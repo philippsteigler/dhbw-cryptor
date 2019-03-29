@@ -3,7 +3,7 @@ package sample;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-/*
+/**
  * Klasse zur Ver- und Entschlüsselung von beliebigen Byte-Strömen, wie beispielsweise ein Dokument als Bytes.
  * Als sicheres, etabliertes Verfahren wird hier der symmetrische AES-256 Algorithmus verwendet.
  *
@@ -12,15 +12,23 @@ import javax.crypto.spec.SecretKeySpec;
  */
 class AES {
 
-    /*
+    /**
      * Methode zur Verschlüsselung eines beliebigen Byte-Arrays, wie beispielsweise ein Dokument als Bytes.
      * Diese Funktion erhält den Klartext und das Shared-Secret als Byte-Arrays und liefert den Chiffretext.
+     *
+     * @param clearBytes Klartext, als Byte-Array codiert.
+     * @param secret Gemeinsames Geheimnis zwischen Alice und Bob, von dem der AES-Key abgeleitet wird.
+     * @return Chiffretext, als Byte-Array codiert.
      */
-    static byte[] encrypt(byte[] inputBytes, byte[] secret) {
+    static byte[] encrypt(byte[] clearBytes, byte[] secret) {
         try {
+            // TODO CBC Modus
+            // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, 0, 16, "AES"));
-            return cipher.doFinal(inputBytes);
+
+            // Führe die Verschlüsselung mit der Cipher-Instanz durch.
+            return cipher.doFinal(clearBytes);
         } catch (Exception e) {
             System.out.println("Error while encrypting: " + e.toString());
         }
@@ -28,16 +36,24 @@ class AES {
         return null;
     }
 
-    /*
+    /**
      * Methode zur Entschlüsselung eines beliebigen Byte-Arrays, wie beispielsweise ein Dokument als Bytes.
      * Diese Funktion erhält den Chiffretext und das Shared-Secret als Byte-Arrays und liefert den Klartext,
      * sofern der richtige Schlüssel verwendet wurde.
+     *
+     * @param chiffreBytes Chiffretext, als Byte-Array codiert.
+     * @param secret Gemeinsames Geheimnis zwischen Alice und Bob, von dem der AES-Key abgeleitet wird.
+     * @return Klartext, als Byte-Array codiert.
      */
-    static byte[] decrypt(byte[] toDecrypt, byte[] secret) {
+    static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
         try {
+            // TODO CBC Modus
+            // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, 0, 16, "AES"));
-            return cipher.doFinal(toDecrypt);
+
+            // Führe die Entschlüsselung mit der Cipher-Instanz durch.
+            return cipher.doFinal(chiffreBytes);
         } catch (Exception e) {
             System.out.println("Error while decrypting: " + e.toString());
         }

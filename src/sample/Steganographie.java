@@ -82,6 +82,11 @@ class Steganographie {
      * die ARGB-Werte des originalen Bildes zu stark manipuliert werden, erfolgt nach dieser Runde keine weitere
      * Codierung der nächsthöheren Bits. Dies bildet einen Kompromiss zwischen Sichtbarkeit der Manipulation und
      * Kapazität zur Codierung einer Datei in das Bild, da somit maximal 50% der Bits überschrieben werden.
+     *
+     * @param document Zu versteckende Datei als File.
+     * @param picture PNG-Bild, in welches die Datei eingebettet wird.
+     * @param sharedSecret Mit Diffie-Hellman erzeugtes symmetrisches Geheimnis zur Erzeugung eines AES-Keys.
+     * @return Manipuliertes PNG-Bild als BufferedImage.
      */
     static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {
 
@@ -192,7 +197,6 @@ class Steganographie {
             }
         }
 
-        // Rückgabewert ist das manipulierte Bild, in dem ein verschlüsseltes Dokument versteckt wurde.
         return img;
     }
 
@@ -212,6 +216,10 @@ class Steganographie {
      * Das Ergebnis ist eine entschlüsselte Datei und deren urspürnglicher Dateiname mit Dateityp, sodass die originale
      * Datei vollständig wiederhergestellt werden kann. Wurde auf der zweiten Ebene auch kein Ende-Flag erfasst, so
      * bricht der Algorithmus ab, da keine versteckte Datei im PNG-Bild erfasst wurde.
+     *
+     * @param picture PNG-Bild, in welchem eventuell eine Datei eingebettet wurde.
+     * @param sharedSecret Mit Diffie-Hellman erzeugtes symmetrisches Geheimnis zur Erzeugung eines AES-Keys.
+     * @return Extrahierte Datei und deren ursprünglicher Name mit Dateityp.
      */
     static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
 
