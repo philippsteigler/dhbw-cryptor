@@ -1,6 +1,7 @@
 package sample;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -22,10 +23,11 @@ class AES {
      */
     static byte[] encrypt(byte[] clearBytes, byte[] secret) {
         try {
-            // TODO CBC Modus
+
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, 0, 16, "AES"));
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            IvParameterSpec initVector = new IvParameterSpec(secret, 0, 16);
+            cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, 0, 16, "AES"), initVector);
 
             // Führe die Verschlüsselung mit der Cipher-Instanz durch.
             return cipher.doFinal(clearBytes);
@@ -47,10 +49,11 @@ class AES {
      */
     static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
         try {
-            // TODO CBC Modus
+
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
-            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, 0, 16, "AES"));
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            IvParameterSpec initVector = new IvParameterSpec(secret, 0, 16);
+            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, 0, 16, "AES"), initVector);
 
             // Führe die Entschlüsselung mit der Cipher-Instanz durch.
             return cipher.doFinal(chiffreBytes);
