@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.zip.*;
 
-/*
+/**
  * Klasse zum Verstecken und Extrahieren von Informationen in/aus Bildern.
  * Hierfür wurde ein eigenes proprietäres Verfahren entwickelt.
  *
@@ -59,7 +59,7 @@ class Steganographie {
         return result;
     }
 
-    /*
+    /**
      * Funktion zum Verstecken eines Dokuments in einem PNG-Bild.
      *
      * Das Dokument wird mit GZIP komprimiert und anschließend mit AES verschlüsselt. Hierfür wird das Shared-Secret
@@ -113,7 +113,7 @@ class Steganographie {
         byteArrayOutputStream.close();
 
         // Im zweiten Schritt wird der erzeugte Byte-Strom in das Bild codiert.
-        // Konvertiere die Bild-Datei hierzu in ein BufferedImage, um die ARGB-Werte modifizieren zu können.
+        // Konvertiere die Bild-Datei hierzu in ein BufferedImage, um die ARGB-Werte zu modifizieren.
         //
         // Dabei wird ein Farbraum verwendet, der neben RGB-Kanälen auch einen Alpha-Kanal besitzt und diesen somit
         // automatisch erstellt, falls das Ausgangsbild keinen besitzt.
@@ -172,7 +172,6 @@ class Steganographie {
             // Danach rückt der Algorithmus ein Pixel weiter. Am Ende einer Zeile wird in die nächste gesprungen.
             // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
             // manipuliert werden. Dementsprechend wird eine Maske definiert.
-            //
             // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht die Codierung ab.
             x++;
             if (x >= width) {
@@ -197,13 +196,13 @@ class Steganographie {
         return img;
     }
 
-    /*
+    /**
      * Funktion zum Extrahieren eines Dokuments, das mit Cryptor in einem PNG-Bild versteckt wurde.
      *
      * Der Vorgang läuft analog zum Verstecken ab - nur Rückwärts.
-     * Als erstes wird der Chiffretext aus den Pixeln des Bildes extrahiert. Dabei werden jeweils die letzten beiden
-     * Bits der ARGB-Bytes zu einem Chiffretext-Byte zusammengesetzt. Die beim Verstecken codierten Flags kennzeichnen
-     * an dieser Stelle das Ende des Dokuments und des mitgelieferten Dateinamens.
+     * Als erstes wird der Chiffretext schrittweise aus den Pixeln des Bildes extrahiert. Dabei werden jeweils die
+     * letzten beiden Bits der ARGB-Bytes zu einem Chiffretext-Byte zusammengesetzt. Die beim Verstecken codierten
+     * Flags kennzeichnen an dieser Stelle das Ende des Dokuments und des mitgelieferten Dateinamens.
      *
      * Wurde kein Flag erfasst, so werden nach Durchlaufen aller Pixel auf der nächsthöheren Ebene die Bits 3 und 4
      * ausgewertet. Der extrahierte Chiffretext wird anschließend unter Verwendung eines geheimen Keys entschlüsselt -
@@ -215,8 +214,11 @@ class Steganographie {
      * bricht der Algorithmus ab, da keine versteckte Datei im PNG-Bild erfasst wurde.
      */
     static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
+
+        // Das übermittelte Bild wird in ein BufferedImage verwandelt, um die ARGB-Werte auszulesen.
         BufferedImage img = ImageIO.read(picture);
 
+        // Einige Hilfsvariablen zum Scannen des Bildes und Auslesen von Informationen.
         boolean readFileType = false;
         boolean next = true;
         int countDocumentEndFlag = 0;
@@ -235,17 +237,27 @@ class Steganographie {
         int shift = 6;
         int level = 0;
 
+        // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
         ByteArrayOutputStream outputFileType = new ByteArrayOutputStream();
 
         while(next) {
-            rgbInt = img.getRGB(x, y);
 
+            // Anfangs wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
+            // Alpha --> Rot --> Grün --> Blau
+            rgbInt = img.getRGB(x, y);
             rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
             rgbBytes[1] = (byte)((rgbInt >> 16) & 0xff);
             rgbBytes[2] = (byte)((rgbInt >> 8) & 0xff);
             rgbBytes[3] = (byte)((rgbInt) & 0xff);
 
+            // In vier Runden werden jeweils 2 Bits aus dem Byte des ARGB-Wertes gelesen und zu einem Byte des
+            // Chiffretextes zusammengesetzt.
+            //
+            // Dafür wird das ARGB-Byte mit einer Maske so manipuliert, dass alle Bits außer den niedrigsten beiden 0
+            // sind. Danach werden diese beiden Bits in das Chiffretext-Byte geschrieben, woraufhin dieses für die
+            // nächste Runde um 2 Stellen geshiftet wird und sich dieser Vorgang wiederholt. Die Maske für das
+            // Chiffretext-Byte stellt sicher, dass stets 0 nachgeschoben und mit dem Chiffrewert überschrieben werden.
             for (byte b: rgbBytes) {
                 input = (byte)(b & rgbMask);
                 input = (byte)(input << shift);
@@ -255,18 +267,27 @@ class Steganographie {
                 cipherByte = (byte)(cipherByte | input);
             }
 
+            // Nach zusammensetzen eines Chiffretext-Bytes wird dessen Wert evaluiert.
+            // Es wird zwischen zwei Modi unterschieden: Dokument auslesen (bis zum Flag vom Ende der Datei) und
+            // Dateiname/-typ auslesen (nach dem Ende der Datei, bis zum Flag vom Ende des Namens/Typs).
             if (readFileType) {
+
+                // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert 42 erfasst, so handelt es sich um das
+                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im Dateinamen und der Algorithmus wartet
+                // weiterhin auf vier Mal 42 in Folge.
                 switch (cipherByte) {
                     case 42:
                         countCipherEndFlag++;
                         outputFileType.write(cipherByte);
 
+                        // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
                         if (countCipherEndFlag == 4) {
                             next = false;
                         }
 
                         break;
                     default:
+                        // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
                         if (countCipherEndFlag != 0 ) {
                             countCipherEndFlag = 0;
                         }
@@ -274,17 +295,23 @@ class Steganographie {
                         outputFileType.write(cipherByte);
                 }
             } else {
+
+                // Im Modus Dokument auslesen: Wird vier Mal der Wert 88 erfasst, so handelt es sich um das
+                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im codierten Dokument und der Algorithmus
+                // wartet weiterhin auf vier Mal 88 in Folge.
                 switch (cipherByte) {
                     case 88:
                         countDocumentEndFlag++;
                         outputDocument.write(cipherByte);
 
+                        // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
                         if (countDocumentEndFlag == 4) {
                             readFileType = true;
                         }
 
                         break;
                     default:
+                        // Wenn nach einer 88 keine weitere 88 gelesen wird, so setze den Zähler zurück.
                         if (countDocumentEndFlag != 0) {
                             countDocumentEndFlag = 0;
                         }
@@ -293,6 +320,10 @@ class Steganographie {
                 }
             }
 
+            // Springe zum nächsten Pixel. Am Ende einer Zeile wird in die nächste gesprungen.
+            // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
+            // ausgelesen werden. Dementsprechend wird die Maske angepasst.
+            // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht der Algorithmus ab.
             x++;
             if (x >= width) {
                 x = 0;
@@ -314,19 +345,26 @@ class Steganographie {
             }
         }
 
+        // Als Ergebnis liegen zwei Outputstreams vor: Dokument und dessen Dateiname mit Typ, jeweils mit Flag am Ende
+        // Deshalb werden die Outputstreams in Byte-Arrays geschrieben. Danach werden die Flags abgeschnitten.
         byte[] flaggedEncryptedDocumentBytes = outputDocument.toByteArray();
         byte[] encryptedDocumentBytes = new byte[flaggedEncryptedDocumentBytes.length - 4];
         System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
-
-        byte[] compressedDocumentBytes = AES.decrypt(encryptedDocumentBytes, sharedSecret);
-        byte[] documentBytes = unzip(compressedDocumentBytes);
 
         byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
+        // Nach Entfernen der Flags wird das Dokument mit dem übergebenen Shared-Secret entschlüsselt. War dies
+        // erfolgreich, so wird nun vorliegende Dokument dekomprimiert und somit vollständig wiederhergestellt.
+        byte[] compressedDocumentBytes = AES.decrypt(encryptedDocumentBytes, sharedSecret);
+        byte[] documentBytes = unzip(compressedDocumentBytes);
+
+        // Um die extrahierte Datei exportieren zu können wird zum Schluss auch der Dateiname/-typ entschlüsselt.
         byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, sharedSecret);
 
+        // Schlägt die Entschlüsselung fehl, so wird eine Meldung für den Anwender erzeugt. Andernfalls werden
+        // Dokument und Dateiname/-typ zum Export als Byte-Arrays übermittelt.
         if (documentBytes == null && fileNameBytes == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Wrong decryption key.");
