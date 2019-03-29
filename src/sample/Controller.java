@@ -178,6 +178,7 @@ public class Controller {
         int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
         long fileSize = document.length();
 
+        // TODO Schwellwert an GZIP-Komprimierung anpassen
         if (fileSize > numberOfPixels * 2) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Use smaller file (max. " + getFileSizeString(numberOfPixels*2) + ") or image with higher resolution (min. " + fileSize/2 + " pixels).");
