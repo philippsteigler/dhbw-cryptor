@@ -20,7 +20,6 @@ import javax.crypto.interfaces.*;
  * einbeziehen muss. Somit können beide Kommunikationspartner abschließend ein gemeinsames Geheimnis berechnen, aus dem
  * später der AES-Key abgeleitet wird.
  */
-
 class DiffieHellman {
 
     /**
