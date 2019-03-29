@@ -3,7 +3,6 @@ package sample;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.util.Arrays;
 
 /**
  * Klasse zur Ver- und Entschlüsselung von beliebigen Byte-Strömen, wie beispielsweise ein Dokument als Bytes.
