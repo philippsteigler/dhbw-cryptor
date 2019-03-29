@@ -163,7 +163,6 @@ public class Controller {
         }
     }
 
-
     // Lädt alle Kontakte die ein Shared-Secret generiert haben, da nur diese zur Ver- und Entschlüsselung zugelassen
     // sind. Diese werden in einer ChoiceBox zur Auswahl angezeigt.
     public void loadEncryptionUser() {
