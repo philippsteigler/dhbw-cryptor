@@ -3,6 +3,7 @@ package sample;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
 
 /**
  * Klasse zur Ver- und Entschlüsselung von beliebigen Byte-Strömen, wie beispielsweise ein Dokument als Bytes.
@@ -23,11 +24,10 @@ class AES {
      */
     static byte[] encrypt(byte[] clearBytes, byte[] secret) {
         try {
-
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-            IvParameterSpec initVector = new IvParameterSpec(secret, 0, 16);
-            cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, 0, 16, "AES"), initVector);
+            IvParameterSpec initVector = new IvParameterSpec(secret, 16, 16);
+            cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, secret.length - 32, 16, "AES"), initVector);
 
             // Führe die Verschlüsselung mit der Cipher-Instanz durch.
             return cipher.doFinal(clearBytes);
@@ -49,11 +49,10 @@ class AES {
      */
     static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
         try {
-
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-            IvParameterSpec initVector = new IvParameterSpec(secret, 0, 16);
-            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, 0, 16, "AES"), initVector);
+            IvParameterSpec initVector = new IvParameterSpec(secret, 16, 16);
+            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, secret.length - 32, 16, "AES"), initVector);
 
             // Führe die Entschlüsselung mit der Cipher-Instanz durch.
             return cipher.doFinal(chiffreBytes);

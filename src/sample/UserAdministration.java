@@ -12,7 +12,24 @@ import java.util.*;
 
 class UserAdministration {
 
-    private final String filename = System.getProperty("user.home") + "/cryptor/users.cryptor";
+    private final String USERS_FILE = System.getProperty("user.home") + "/cryptor/users.cryptor";
+    private final byte[] CRYPTOR_AES_SECRET = new byte[]{
+            (byte)0xf1,
+            (byte)0xf0, 0x0b,
+            (byte)0xcf, 0x78, 0x2f, 0x61,
+            (byte)0x88, 0x66, 0x6f,
+            (byte)0x93,
+            (byte)0x82,
+            (byte)0xba,
+            (byte)0xdb, 0x55, 0x42,
+            (byte)0xbe, 0x53,
+            (byte)0xee, 0x50, 0x4b, 0x2a, 0x37, 0x67,
+            (byte)0xbc, 0x1f, 0x76, 0x44,
+            (byte)0xfe,
+            (byte)0x95, 0x66,
+            (byte)0xdb
+    };
+
     private NavigableMap<Integer, User> users;
 
     UserAdministration() {
@@ -90,19 +107,11 @@ class UserAdministration {
     }
 
     private void readUsers() throws IOException{
-        File file = new File(filename);
+        File file = new File(USERS_FILE);
 
         if (file.exists()) {
-            byte[] encrypted = Files.readAllBytes(Paths.get(filename));
-
-            byte[] encoded = AES.decrypt(encrypted, new byte[] {
-                    (byte)0xe0, 0x4f,
-                    (byte)0xd0, 0x20,
-                    (byte)0xea, 0x3a, 0x69, 0x10,
-                    (byte)0xa2,
-                    (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                    (byte)0x9d
-            });
+            byte[] encrypted = Files.readAllBytes(Paths.get(USERS_FILE));
+            byte[] encoded = AES.decrypt(encrypted, CRYPTOR_AES_SECRET);
 
             String encodedUsers = null;
             if (encoded != null) {
@@ -149,17 +158,9 @@ class UserAdministration {
                     .append(":::");
         }
 
-        byte[] encryptedUsers = AES.encrypt(encodedUsers.toString().getBytes(Charset.forName("ISO-8859-1")), new byte[] {
-                (byte)0xe0, 0x4f,
-                (byte)0xd0, 0x20,
-                (byte)0xea, 0x3a, 0x69, 0x10,
-                (byte)0xa2,
-                (byte)0xd8, 0x08, 0x00, 0x2b, 0x30, 0x30,
-                (byte)0x9d
-        });
+        byte[] encryptedUsers = AES.encrypt(encodedUsers.toString().getBytes(Charset.forName("ISO-8859-1")), CRYPTOR_AES_SECRET);
 
-        FileOutputStream fos = new FileOutputStream(filename);
-
+        FileOutputStream fos = new FileOutputStream(USERS_FILE);
         if (encryptedUsers != null) {
             fos.write(encryptedUsers);
         }
