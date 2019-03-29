@@ -31,10 +31,9 @@ import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
 /**
- * JavaFx Controller Klasse
- * Verarbeitet Eingaben aus dem Applikationsfenster
+ * JavaFx Controller Klasse als Schnittstelle zwischen GUI und Programmlogik.
+ * Verarbeitet Ein- und Ausgaben vom/fürs Applikationsfenster.
  */
-
 public class Controller {
 
     private UserAdministration userAdministration;
@@ -106,14 +105,13 @@ public class Controller {
     /**
      * TAB: Encrypt
      *
-     * Der Tab Encrypt wird bei der Verschlüsselung von Informationen verwendet
-     *
-     * Er Läd die zu verschlüsselnde Datei und das Bild in dem diese versteckt wird
+     * Der Tab Encrypt wird bei der Verschlüsselung von Informationen verwendet.
+     * Er Läd die zu verschlüsselnde Datei und das Bild in dem diese versteckt wird.
      */
 
-    //Ist für das Anzeigen des Encrypt-Buttons zuständig
+    // Ist für das Anzeigen des Encrypt-Buttons zuständig.
     //
-    // Invertiert bei Aufruf den Anzeigezustand
+    // Invertiert bei Aufruf den Anzeigezustand.
     // Sichtbar -> Unsichtbar
     // Unsichtbar -> Sichtbar
     private void updateEncryptButton() {
@@ -124,8 +122,7 @@ public class Controller {
         }
     }
 
-    // Öffnet eine enie Scene für die Dateiauswahl
-    // Speichert die Datei in die Variable document
+    // Öffnet eine eine Scene für die Dateiauswahl und speichert eine Referenz auf diese Datei.
     public void loadFile() {
         FileChooser fc = new FileChooser();
 
@@ -137,8 +134,7 @@ public class Controller {
         }
     }
 
-    // Öffnet eine eine Scene für die Bildauswahl
-    // Speichert das Bild in die Variable picture
+    // Öffnet eine eine Scene für die PNG-Bildauswahl und speichert eine Referenz auf dieses PNG-Bild.
     public void loadPicture() throws IOException {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
@@ -162,8 +158,8 @@ public class Controller {
     }
 
 
-    //Läd alle Kontakte die ein shared secret generiert haben
-    //Diese werden in einer Choice Box zur Auswahl angezeigt
+    // Lädt alle Kontakte die ein Shared-Secret generiert haben, da nur diese zur Ver- und Entschlüsselung zugelassen
+    // sind. Diese werden in einer ChoiceBox zur Auswahl angezeigt.
     public void loadEncryptionUser() {
         ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
                 .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
@@ -184,7 +180,7 @@ public class Controller {
         choiseBox_encryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateEncryptButton());
     }
 
-    // Verschlüsseln und Verstecken der Datei
+    // Verschlüsseln und Verstecken der Datei.
     public void encrypt() throws Exception {
         if (document == null || picture == null || choiseBox_encryptionUser.getSelectionModel().isEmpty()) {
             return;
@@ -228,14 +224,13 @@ public class Controller {
     /**
      * TAB: Decrypt
      *
-     * Der Tab Encrypt wird bei der Entschlüsselung von Informationen verwendet
-     *
-     * Er Läd ein Bild in dem Informationen vermutet werden und versucht diese mit dem augewählten Kontakt zu entschlüsseln
+     * Der Tab Encrypt wird bei der Entschlüsselung von Informationen verwendet.
+     * Er lädt ein Bild in dem Informationen vermutet werden und versucht diese mit dem passenden Key zu entschlüsseln.
      */
 
-    //Ist für das Anzeigen des Decrypt-Buttons zuständig
+    // Ist für das Anzeigen des Decrypt-Buttons zuständig.
     //
-    // Invertiert bei Aufruf den Anzeigezustand
+    // Invertiert bei Aufruf den Anzeigezustand.
     // Sichtbar -> Unsichtbar
     // Unsichtbar -> Sichtbar
     private void updateDecryptButton() {
@@ -246,7 +241,7 @@ public class Controller {
         }
     }
 
-    //Läd das Bild in dem die verschlüsselte Nachricht vermutet wird
+    // Lädt das PNG-Bild in dem die verschlüsselte Nachricht vermutet wird.
     public void loadEncryptedPicture() throws IOException {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG (.png)", "*.png"));
@@ -269,8 +264,8 @@ public class Controller {
         }
     }
 
-    //Läd alle Kontakte die ein shared secret generiert haben
-    //Diese werden in einer Choice Box zur Auswahl angezeigt
+    // Lädt alle Kontakte die ein Shared-Secret generiert haben.
+    // Diese werden in einer ChoiceBox zur Auswahl angezeigt.
     public void loadDecryptionUser() {
         ObservableList<User> userList = FXCollections.observableArrayList(userAdministration.getUsers()
                 .stream().filter(user -> user.getSharedSecret().length > 1).collect(Collectors.toList()));
@@ -291,7 +286,7 @@ public class Controller {
         choiseBox_decryptionUser.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateDecryptButton());
     }
 
-    // Liest die versteckte Nachricht aus einem Bild und entschlüsselt sie
+    // Liest die versteckte Nachricht aus einem Bild und entschlüsselt sie.
     public void decrypt() throws Exception {
         if (encryptedPicture == null || choiseBox_decryptionUser.getSelectionModel().isEmpty()) {
             return;
@@ -344,18 +339,17 @@ public class Controller {
     /**
      * TAB: Contacts
      *
-     * Zeigt alle angelegten Kontakte an
-     *
-     * Erlaubt das generieren und eintragen von Public Keys
+     * Zeigt alle angelegten Kontakte an.
+     * Erlaubt das generieren und eintragen von Public-Keys, um den DHKE abzuschließen.
      */
 
-    //Leeren der Anzeige
+    // Leert die Tabelle mit Usern, um diese zu aktualisieren.
     public void resetTabContacts() {
         clearSceneContacts();
         loadUsers();
     }
 
-    //Zurücsetzen der FXML Objekte
+    // Objekte mit Infos über einen Kontakt werden ausgeblendet, solange keiner in der GUI ausgewählt wurde.
     private void clearSceneContacts() {
         label_userName.setVisible(false);
         label_exportPubKey.setVisible(false);
@@ -366,7 +360,7 @@ public class Controller {
         button_deleteContact.setVisible(false);
     }
 
-    //Läd alle Kontakte und zeigt die an
+    // Lädt alle Kontakte und zeigt diese in einer Tabelle an.
     private void loadUsers() {
         tableView_users.getItems().clear();
 
@@ -378,8 +372,9 @@ public class Controller {
         tableView_users.setItems(userList);
     }
 
-    //Wird beim anklicken eines Kontakts aufgerufen
-    //Zeigt die Optionen zu diesem Kontakt an
+    // Wird beim anklicken eines Kontakts aufgerufen.
+    // Zeigt Informationen über diesen Kontakt an und bietet Möglichkeiten, den Public-Key zu exportieren und den
+    // Private-Key zum Abschluss des DHKW zu importieren.
     public void selectUserInView() {
         clearSceneContacts();
 
@@ -410,7 +405,7 @@ public class Controller {
         button_deleteContact.setVisible(true);
     }
 
-    //Exportiert den Public Key zu einem Kontakt
+    // Exportiert den Public-Key zum ausgewählten Kontakt.
     public void exportPublicKey() {
         User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
@@ -435,7 +430,7 @@ public class Controller {
         }
     }
 
-    //Importiert den Public Key zu einem Kontakt
+    // Importiert den Public-Key zum ausgewählten Kontakt.
     public void importPublicKey() throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
         User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
@@ -456,7 +451,7 @@ public class Controller {
         resetTabContacts();
     }
 
-    //Löscht einen Kontakt
+    // Löscht einen Kontakt aus der Kontaktliste.
     public void deleteUser() throws IOException {
         User selectedUser = tableView_users.getSelectionModel().getSelectedItem();
         if (selectedUser == null) {
@@ -471,10 +466,10 @@ public class Controller {
     /**
      * TAB: New User
      *
-     * Auf diesem Tab können neue Kontakte erzeugt und schlüssel für diese generiert bzw. hinterlegt werden
+     * Auf diesem Tab können neue Kontakte erzeugt und Schlüssel für diese generiert bzw. hinterlegt werden.
      */
 
-    //Setzt die Benutzereingaben zurück
+    // Setzt die Benutzereingaben zurück.
     public void resetTabNewUser() {
         textField_UserName.clear();
         checkBox_publicKey.setSelected(false);
@@ -485,13 +480,13 @@ public class Controller {
         label_publicKey.setVisible(false);
     }
 
-    //Zeigt das Feld zur eingabe des Public keys an
+    // Zeigt das Feld zur eingabe des Public-Keys an.
     public void checkBoxState() {
         button_loadPublicKey.setVisible(!button_loadPublicKey.isVisible());
         label_publicKey.setVisible(!label_publicKey.isVisible());
     }
 
-    //Öffnet die Dateiauswahl um den Public Key auszuwählen
+    // Öffnet die Dateiauswahl, um den Public-Key einzulesen.
     public void loadPublicKey() {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PUBKEY (.pubKey)", "*.pubKey"));
@@ -503,8 +498,9 @@ public class Controller {
         }
     }
 
-    //Fügt einen neuen Kontakt hinzu
-    //Es wird unterschieden zwischen einem Kontakt der den Key Exchange einleitet und einem Kontakt der ihn empfängt
+    // Fügt einen neuen Kontakt hinzu.
+    // Es wird unterschieden zwischen einem Kontakt der den Key Exchange einleitet und einem Kontakt der ihn empfängt.
+    // (siehe DiffieHellman.class)
     public void addUser() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, IOException {
         if (textField_UserName.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
