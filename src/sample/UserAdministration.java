@@ -10,6 +10,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
+/**
+ * Verwaltung der Kontakte
+ */
+
 class UserAdministration {
 
     private final String filename = System.getProperty("user.home") + "/cryptor/users.cryptor";
@@ -36,6 +40,8 @@ class UserAdministration {
         return userList;
     }
 
+
+    //Generation einer eindeutigen ID an der die Kontakte identifiziert werden können
     private int generateNewID() {
         if (users.isEmpty()) {
             return 0;
@@ -45,6 +51,7 @@ class UserAdministration {
         }
     }
 
+    //Erstellen eines neuen Kontaktes
     User createUser(String name) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
         byte[][] alice = DiffieHellman.alice();
         int id = generateNewID();
@@ -56,6 +63,7 @@ class UserAdministration {
         return user;
     }
 
+    //Erstellen eines neuen Kontaktes mit Public Key
     User createUser(String name, byte[] publicKeyEnc) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
         byte[][] bob = DiffieHellman.bob(publicKeyEnc);
         int id = generateNewID();
@@ -67,6 +75,7 @@ class UserAdministration {
         return user;
     }
 
+    //Mit dem Public key der Gegenseite wird der Key Exchange vervollständigt
     void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
             if (entry.getValue().getId() == id) {
@@ -78,6 +87,7 @@ class UserAdministration {
         saveUsers();
     }
 
+    //Löschen eines Kontaktes
     void deleteUser(int id) throws IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
             if (entry.getValue().getId() == id) {
@@ -89,6 +99,7 @@ class UserAdministration {
         saveUsers();
     }
 
+    //Einlesen der verschlüsselten Kontaktdatei und laden der Kontakte
     private void readUsers() throws IOException{
         File file = new File(filename);
 
@@ -130,6 +141,7 @@ class UserAdministration {
         }
     }
 
+    //Speichern der Kontakte in eine verschlüsselte Datei
     private void saveUsers() throws IOException {
         StringBuilder encodedUsers = new StringBuilder();
 
