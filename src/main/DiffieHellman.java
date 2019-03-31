@@ -1,4 +1,4 @@
-package sample;
+package main;
 
 import java.security.*;
 import java.security.spec.*;

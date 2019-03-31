@@ -1,4 +1,4 @@
-package sample;
+package main;
 
 import javafx.scene.control.Alert;
 
@@ -23,7 +23,7 @@ import java.util.zip.*;
  * Datei überschrieben. Anschließend können diese Daten auf umgekehrten Weg extrahiert und zur originalen Datei
  * zusammengesetzt werden - vorausgesetzt die Entschlüsselung war erfolgreich.
  */
-class Steganographie {
+class Steganography {
 
     private static byte[] zip(byte[] uncompressedData) {
         byte[] result = new byte[]{};

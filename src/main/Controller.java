@@ -1,4 +1,4 @@
-package sample;
+package main;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -205,7 +205,7 @@ public class Controller {
             return;
         }
 
-        BufferedImage encryptedPicture = Steganographie.hide(document, picture, user.getSharedSecret());
+        BufferedImage encryptedPicture = Steganography.hide(document, picture, user.getSharedSecret());
 
         if (encryptedPicture != null) {
             FileChooser fc = new FileChooser();
@@ -299,7 +299,7 @@ public class Controller {
 
         User user = choiseBox_decryptionUser.getSelectionModel().getSelectedItem();
 
-        byte[][] result = Steganographie.extract(encryptedPicture, user.getSharedSecret());
+        byte[][] result = Steganography.extract(encryptedPicture, user.getSharedSecret());
 
         String fileName = null;
         if (result != null && result[1] != null) {
