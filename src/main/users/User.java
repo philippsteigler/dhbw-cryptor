@@ -1,4 +1,4 @@
-package main;
+package main.users;
 
 public class User {
 
@@ -16,11 +16,11 @@ public class User {
         this.sharedSecret = sharedSecret;
     }
 
-    int getId() {
+    public int getId() {
         return id;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
@@ -28,11 +28,11 @@ public class User {
         return myPrivKey;
     }
 
-    byte[] getMyPublicKey() {
+    public byte[] getMyPublicKey() {
         return myPubKey;
     }
 
-    byte[] getSharedSecret() {
+    public byte[] getSharedSecret() {
         return sharedSecret;
     }
 

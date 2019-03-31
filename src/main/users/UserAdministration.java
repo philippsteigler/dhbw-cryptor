@@ -1,4 +1,8 @@
-package main;
+package main.users;
+
+import main.cryptography.DiffieHellman;
+import main.cryptography.AES;
+import main.users.User;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -13,7 +17,7 @@ import java.util.*;
 /**
  * Klasse zur Verwaltung der Kontakte, mit denen Ver- und Entschlüsselt wird.
  */
-class UserAdministration {
+public class UserAdministration {
 
     private final String USERS_FILE = System.getProperty("user.home") + "/cryptor/users.cryptor";
     private final byte[] CRYPTOR_AES_SECRET = new byte[]{
@@ -35,7 +39,7 @@ class UserAdministration {
 
     private NavigableMap<Integer, User> users;
 
-    UserAdministration() {
+    public UserAdministration() {
         users = new TreeMap<>();
 
         try {
@@ -46,7 +50,7 @@ class UserAdministration {
         }
     }
 
-    ArrayList<User> getUsers() {
+    public ArrayList<User> getUsers() {
         ArrayList<User> userList = new ArrayList<>();
 
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
@@ -72,7 +76,7 @@ class UserAdministration {
     // Erstellt einen neuen Kontakt.
     // Diese Methode wird von Alice (A) verwendet, da sie den Key-Exchange initialisiert und zu diesem Zeitpunkt keinen
     // Public-Key von Bob (B) zur Verfügung hat.
-    User createUser(String name) throws NoSuchAlgorithmException, IOException {
+    public User createUser(String name) throws NoSuchAlgorithmException, IOException {
 
         // Generiere ein Private-Public-Key Pair für die Kommunikation mit diesem Kontakt.
         byte[][] alice = DiffieHellman.alice();
@@ -90,7 +94,7 @@ class UserAdministration {
 
     // Erstellt einen neuen Kontakt unter Verwendung eines Public-Keys.
     // Diese Methode wird von Bob (B) verwendet, der Alices' Public-Key zur Erzeugung korrespondieren Keys nutzt.
-    User createUser(String name, byte[] publicKeyEnc) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+    public User createUser(String name, byte[] publicKeyEnc) throws InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, IOException {
 
         // Generiere ein Private-Public-Key Pair + Shared-Secret für die Kommunikation mit diesem Kontakt.
         byte[][] bob = DiffieHellman.bob(publicKeyEnc);
@@ -106,7 +110,7 @@ class UserAdministration {
     }
 
     // Mit dem Public-Key von Bob wird der Key-Exchange abgeschlossen.
-    void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
+    public void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
 
         // Über die mitgelieferte ID wird Alice ermittelt und anschließend mit ihrem Private-Key und Bob's Public-Key,
         // um auf ihrer Seite das Shared-Secret zu berechnen.
@@ -121,7 +125,7 @@ class UserAdministration {
     }
 
     // Löschen eines Kontaktes.
-    void deleteUser(int id) throws IOException {
+    public void deleteUser(int id) throws IOException {
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
             if (entry.getValue().getId() == id) {
                 users.remove(entry.getKey());

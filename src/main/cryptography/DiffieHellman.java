@@ -1,4 +1,4 @@
-package main;
+package main.cryptography;
 
 import java.security.*;
 import java.security.spec.*;
@@ -20,14 +20,14 @@ import javax.crypto.interfaces.*;
  * einbeziehen muss. Somit können beide Kommunikationspartner abschließend ein gemeinsames Geheimnis berechnen, aus dem
  * später der AES-Key abgeleitet wird.
  */
-class DiffieHellman {
+public class DiffieHellman {
 
     /**
      * Diese Methode initialisiert den DHKE. Es wird ein Private-Public-Key-Pair für den DHKE erzeugt und übermittelt.
      *
      * @return Menge aus Alices' Public- und Private-Key.
      */
-    static byte[][] alice() throws NoSuchAlgorithmException {
+    public static byte[][] alice() throws NoSuchAlgorithmException {
 
         // Erzeuge einen Schlüsselgenerator für Alice im DH-Modus und initialisiere diesen.
         KeyPairGenerator aliceKpairGen = KeyPairGenerator.getInstance("DH");
@@ -50,7 +50,7 @@ class DiffieHellman {
      * @param alicePubKeyEnc Public-Key von Alice, als Byte-Array codiert.
      * @return Menge aus Bob's Public-Key, Private-Key und Shared-Secret.
      */
-    static byte[][] bob(byte[] alicePubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public static byte[][] bob(byte[] alicePubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, InvalidKeyException {
 
         // Erzeuge eine Key-Factory und Key-Specs, um den codierten Public-Key von Alice in einen Schlüssel umzuwandeln.
         KeyFactory bobKeyFac = KeyFactory.getInstance("DH");
@@ -91,7 +91,7 @@ class DiffieHellman {
      * @param bobPubKeyEnc Public-Key von Bob, als Byte-Array codiert.
      * @return Shared-Secret von Alice, als Byte-Array codiert.
      */
-    static byte[] aliceComplete(byte[] alicePrivKeyEnc, byte[] bobPubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+    public static byte[] aliceComplete(byte[] alicePrivKeyEnc, byte[] bobPubKeyEnc) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
 
         // Erzeuge eine Key-Factory und Key-Specs, um den codierten Private-Key von Alice in einen Schlüssel umzuwandeln.
         KeyFactory alicePrivKeyFac = KeyFactory.getInstance("DH");

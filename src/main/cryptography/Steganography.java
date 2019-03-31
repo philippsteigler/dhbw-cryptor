@@ -1,6 +1,7 @@
-package main;
+package main.cryptography;
 
 import javafx.scene.control.Alert;
+import main.cryptography.AES;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -23,7 +24,7 @@ import java.util.zip.*;
  * Datei überschrieben. Anschließend können diese Daten auf umgekehrten Weg extrahiert und zur originalen Datei
  * zusammengesetzt werden - vorausgesetzt die Entschlüsselung war erfolgreich.
  */
-class Steganography {
+public class Steganography {
 
     private static byte[] zip(byte[] uncompressedData) {
         byte[] result = new byte[]{};
@@ -88,7 +89,7 @@ class Steganography {
      * @param sharedSecret Mit Diffie-Hellman erzeugtes symmetrisches Geheimnis zur Erzeugung eines AES-Keys.
      * @return Manipuliertes PNG-Bild als BufferedImage.
      */
-    static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {
+    public static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {
 
         // Das übermittelte Dokument wird von einer Datei in eine Byte-Folge konvertiert.
         // Anschließend wird das Dokument mit GZIP komprimiert und mittels AES verschlüsselt.
@@ -221,7 +222,7 @@ class Steganography {
      * @param sharedSecret Mit Diffie-Hellman erzeugtes symmetrisches Geheimnis zur Erzeugung eines AES-Keys.
      * @return Extrahierte Datei und deren ursprünglicher Name mit Dateityp.
      */
-    static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
+    public static byte[][] extract(File picture, byte[] sharedSecret) throws Exception {
 
         // Das übermittelte Bild wird in ein BufferedImage verwandelt, um die ARGB-Werte auszulesen.
         BufferedImage img = ImageIO.read(picture);

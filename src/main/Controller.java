@@ -14,6 +14,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import main.cryptography.Steganography;
+import main.users.User;
+import main.users.UserAdministration;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

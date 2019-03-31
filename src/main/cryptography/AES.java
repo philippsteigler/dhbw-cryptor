@@ -1,4 +1,4 @@
-package main;
+package main.cryptography;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
  * Der Schlüssel wird dafür vom gemeinsamen Shared-Secret beider Kommunikationspartner abgeleitet, welches ebenfalls
  * an die Methoden übergeben wird.
  */
-class AES {
+public class AES {
 
     /**
      * Methode zur Verschlüsselung eines beliebigen Byte-Arrays, wie beispielsweise ein Dokument als Bytes.
@@ -21,7 +21,7 @@ class AES {
      * @param secret Gemeinsames Geheimnis zwischen Alice und Bob, von dem der AES-Key abgeleitet wird.
      * @return Chiffretext, als Byte-Array codiert.
      */
-    static byte[] encrypt(byte[] clearBytes, byte[] secret) {
+    public static byte[] encrypt(byte[] clearBytes, byte[] secret) {
         try {
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
@@ -46,7 +46,7 @@ class AES {
      * @param secret Gemeinsames Geheimnis zwischen Alice und Bob, von dem der AES-Key abgeleitet wird.
      * @return Klartext, als Byte-Array codiert.
      */
-    static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
+    public static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
         try {
             // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
