@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.*;
 
@@ -103,10 +104,10 @@ public class Steganography {
         int rgbInt;
         int x = 0;
         int y = 0;
-        byte aesMask = 0b00000011;
+        byte aesMask = (byte) 0b00000011;
         byte rgbMask = (byte) 0b11111100;
         int shift = 0;
-        int level = 0;
+        int layer = 0;
 
         // Für jedes Byte des Chiffretextes: Bits auf ARGB-Wert eines Pixels verteilen.
         for (byte aesByte: cipher) {
@@ -144,19 +145,12 @@ public class Steganography {
             // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
             // manipuliert werden. Dementsprechend wird eine Maske definiert.
             // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht die Codierung ab.
-            x++;
+            x += 5;
             if (x >= width) {
-                x = 0;
+                x = y%5 + layer;
                 y++;
                 if (y >= height) {
-                    level++;
-                    if (level >= 2) {
-                        System.out.println("Error while encoding: File too large.");
-                        return null;
-                    }
-
-                    rgbMask = (byte) 0b1111110011;
-                    shift = 2;
+                    layer++;
                     x = 0;
                     y = 0;
                 }
@@ -209,7 +203,7 @@ public class Steganography {
         byte aesMask = 0b00111111;
         byte rgbMask = 0b00000011;
         int shift = 6;
-        int level = 0;
+        int layer = 0;
 
         // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
@@ -298,21 +292,12 @@ public class Steganography {
             // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
             // ausgelesen werden. Dementsprechend wird die Maske angepasst.
             // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht der Algorithmus ab.
-            x++;
+            x += 5;
             if (x >= width) {
-                x = 0;
+                x = y%5 + layer;
                 y++;
                 if (y >= height) {
-                    level++;
-                    if (level >= 2) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setContentText("This picture doesn't seem to contain any hidden files.");
-                        alert.showAndWait();
-                        return null;
-                    }
-
-                    rgbMask = 0b00001100;
-                    shift = 4;
+                    layer++;
                     x = 0;
                     y = 0;
                 }
