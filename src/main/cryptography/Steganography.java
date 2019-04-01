@@ -150,6 +150,12 @@ public class Steganography {
                 x = y%5 + layer;
                 y++;
                 if (y >= height) {
+                    if (layer >= 5) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("This picture is not big enough for this File.");
+                        alert.showAndWait();
+                        return null;
+                    }
                     layer++;
                     x = 0;
                     y = 0;
@@ -297,6 +303,12 @@ public class Steganography {
                 x = y%5 + layer;
                 y++;
                 if (y >= height) {
+                    if (layer >= 5) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("This picture doesn't seem to contain any hidden files.");
+                        alert.showAndWait();
+                        return null;
+                    }
                     layer++;
                     x = 0;
                     y = 0;
