@@ -26,40 +26,6 @@ import java.util.zip.*;
  */
 public class Steganography {
 
-    private static byte[] zip(byte[] uncompressedData) {
-        byte[] result = new byte[]{};
-
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(uncompressedData.length);
-             GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
-            gzipOS.write(uncompressedData);
-            gzipOS.close();
-            result = bos.toByteArray();
-        } catch (IOException e) {
-            System.out.println("Error while compressing file: " + e.toString());
-        }
-
-        return result;
-    }
-
-    private static byte[] unzip(byte[] compressedData) {
-        byte[] result = new byte[]{};
-
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
-             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             GZIPInputStream gzipIS = new GZIPInputStream(bis)) {
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = gzipIS.read(buffer)) != -1) {
-                bos.write(buffer, 0, len);
-            }
-            result = bos.toByteArray();
-        } catch (IOException e) {
-            System.out.println("Error while decompressing file: " + e.toString());
-        }
-
-        return result;
-    }
-
     /**
      * Funktion zum Verstecken eines Dokuments in einem PNG-Bild.
      *
@@ -92,10 +58,9 @@ public class Steganography {
     public static BufferedImage hide(File document, File picture, byte[] sharedSecret) throws Exception {
 
         // Das übermittelte Dokument wird von einer Datei in eine Byte-Folge konvertiert.
-        // Anschließend wird das Dokument mit GZIP komprimiert und mittels AES verschlüsselt.
+        // Anschließend wird das Dokument mittels AES verschlüsselt.
         byte[] documentBytes = Files.readAllBytes(document.toPath());
-        byte[] compressedDocumentBytes = zip(documentBytes);
-        byte[] encryptedDocumentBytes = AES.encrypt(compressedDocumentBytes, sharedSecret);
+        byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, sharedSecret);
 
         // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des Dokuments.
         byte[] documentEndFlag = new byte[4];
@@ -364,10 +329,8 @@ public class Steganography {
         byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
-        // Nach Entfernen der Flags wird das Dokument mit dem übergebenen Shared-Secret entschlüsselt. War dies
-        // erfolgreich, so wird nun vorliegende Dokument dekomprimiert und somit vollständig wiederhergestellt.
-        byte[] compressedDocumentBytes = AES.decrypt(encryptedDocumentBytes, sharedSecret);
-        byte[] documentBytes = unzip(compressedDocumentBytes);
+        // Nach Entfernen der Flags wird das Dokument mit dem übergebenen Shared-Secret entschlüsselt.
+        byte[] documentBytes = AES.decrypt(encryptedDocumentBytes, sharedSecret);
 
         // Um die extrahierte Datei exportieren zu können wird zum Schluss auch der Dateiname/-typ entschlüsselt.
         byte[] fileNameBytes = AES.decrypt(encryptedFileNameBytes, sharedSecret);
