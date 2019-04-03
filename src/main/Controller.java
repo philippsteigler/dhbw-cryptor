@@ -156,7 +156,7 @@ public class Controller {
                     + "Resolution of picture:\n"
                     + imgWidth + " x " + imgHeight + " (" + imgWidth*imgHeight + " Pixels)\n\n"
                     + "Maximum capacity:\n"
-                    + getFileSizeString(imgWidth*imgHeight - Math.round(imgHeight * 1.5))
+                    + getFileSizeString(imgWidth*imgHeight)
             );
 
             Image image = new Image(picture.toURI().toString());
@@ -198,12 +198,11 @@ public class Controller {
 
         pictureBuffered = ImageIO.read(picture);
         int numberOfPixels = pictureBuffered.getHeight()*pictureBuffered.getWidth();
-        int spacer = (pictureBuffered.getHeight() / 4) * 6 + (pictureBuffered.getHeight() % 6);
         long fileSize = document.length();
 
-        if (fileSize > (numberOfPixels - spacer)) {
+        if (fileSize > numberOfPixels) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Use smaller file (max. " + getFileSizeString(numberOfPixels - spacer) + ") or image with higher resolution (min. " + fileSize + " pixels).");
+            alert.setContentText("Use smaller file (max. " + getFileSizeString(numberOfPixels) + ") or image with higher resolution (min. " + fileSize + " pixels).");
             alert.showAndWait();
             return;
         }

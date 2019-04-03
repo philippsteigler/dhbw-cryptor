@@ -144,20 +144,23 @@ public class Steganography {
             // Danach rückt der Algorithmus ein Pixel weiter. Am Ende einer Zeile wird in die nächste gesprungen.
             // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
             // manipuliert werden. Dementsprechend wird eine Maske definiert.
-            // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht die Codierung ab.
+            // TODO Normal schreiben und rest Random füllen
             x += 5;
             if (x >= width) {
-                x = y%5 + layer;
                 y++;
+                x = y%5 + layer;
+
                 if (y >= height) {
+                    layer++;
+
                     if (layer >= 5) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setContentText("This picture is not big enough for this File.");
                         alert.showAndWait();
                         return null;
                     }
-                    layer++;
-                    x = 0;
+
+                    x = layer;
                     y = 0;
                 }
             }
@@ -297,20 +300,23 @@ public class Steganography {
             // Springe zum nächsten Pixel. Am Ende einer Zeile wird in die nächste gesprungen.
             // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
             // ausgelesen werden. Dementsprechend wird die Maske angepasst.
-            // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht der Algorithmus ab.
+            // TODO An Random füllen anpassen
             x += 5;
             if (x >= width) {
-                x = y%5 + layer;
                 y++;
+                x = y%5 + layer;
+
                 if (y >= height) {
+                    layer++;
+
                     if (layer >= 5) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setContentText("This picture doesn't seem to contain any hidden files.");
                         alert.showAndWait();
                         return null;
                     }
-                    layer++;
-                    x = 0;
+
+                    x = layer;
                     y = 0;
                 }
             }
