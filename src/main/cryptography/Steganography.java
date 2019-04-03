@@ -1,7 +1,6 @@
 package main.cryptography;
 
 import javafx.scene.control.Alert;
-import main.cryptography.AES;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -10,9 +9,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.zip.*;
+import java.util.Random;
 
 /**
  * Klasse zum Verstecken und Extrahieren von Informationen in/aus Bildern.
@@ -102,17 +100,31 @@ public class Steganography {
         int width = img.getWidth();
         int height = img.getHeight();
         int rgbInt;
-        int x = 0;
+        int x = -1;
         int y = 0;
         byte aesMask = (byte) 0b00000011;
         byte rgbMask = (byte) 0b11111100;
-        int shift = 0;
-        int layer = 0;
 
         // Für jedes Byte des Chiffretextes: Bits auf ARGB-Wert eines Pixels verteilen.
         for (byte aesByte: cipher) {
 
-            // Anfangs wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
+            // Zunächst rückt der Lesekopf ein Pixel weiter. Zu Beginn startet er außerhalb des Bildes und rückt auf
+            // das erste Pixel. Am Ende einer Zeile wird in die nächste gesprungen. Am Ende des Bildes wird einmalig
+            // von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte manipuliert werden. Dementsprechend
+            // wird eine Maske definiert.
+            x++;
+            if (x >= width) {
+                y++;
+                if (y >= height) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("This picture is not big enough for this File.");
+                    alert.showAndWait();
+                    return null;
+                }
+                x = 0;
+            }
+
+            // Danach wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
             // Alpha --> Rot --> Grün --> Blau
             rgbInt = img.getRGB(x, y);
             rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
@@ -133,39 +145,54 @@ public class Steganography {
             for (int i = 0; i < 4; i++) {
                 insert = (byte)(aesByte & aesMask);
                 into = (byte)(rgbBytes[i] & rgbMask);
-                rgbBytes[i] = (byte)((insert << shift) | into);
+                rgbBytes[i] = (byte)(insert | into);
 
                 aesByte = (byte)(aesByte >> 2);
             }
 
             // Der mit den Informationen angereicherte ARGB-Wert wird nach der Codierung in das Bild geschrieben.
             img.setRGB(x, y, ByteBuffer.wrap(rgbBytes).getInt());
+        }
 
-            // Danach rückt der Algorithmus ein Pixel weiter. Am Ende einer Zeile wird in die nächste gesprungen.
-            // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
-            // manipuliert werden. Dementsprechend wird eine Maske definiert.
-            // TODO Normal schreiben und rest Random füllen
-            x += 5;
-            if (x >= width) {
-                y++;
-                x = y%5 + layer;
+        // Wurden noch nicht alle Pixel manipuliert, so werden die restlichen Pixel mit zufälligen Werten beschrieben.
+        if (x != width-1 && y != height-1) {
 
-                if (y >= height) {
-                    layer++;
+            // Dafür wird ein Byte-Array mit einer Länge gleich der Anzahl an verbleibenden Pixeln generiert und
+            // anschließend mit Zufallswertden befüllt.
+            byte[] randoms = new byte[(width-x-1) + ((height-y-1)*width)];
+            new Random().nextBytes(randoms);
 
-                    if (layer >= 5) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setContentText("This picture is not big enough for this File.");
-                        alert.showAndWait();
-                        return null;
+            // Die Codierung der Pixel erfolgt analog zum vorherigen Ablauf mit dem Chiffretext.
+            for (byte randomByte: randoms) {
+                x++;
+                if (x >= width) {
+                    y++;
+                    if (y >= height) {
+                        System.out.println("Error while encrypting: Something went wrong.");
+                        break;
                     }
-
-                    x = layer;
-                    y = 0;
+                    x = 0;
                 }
+
+                rgbInt = img.getRGB(x, y);
+                rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
+                rgbBytes[1] = (byte)((rgbInt >> 16) & 0xff);
+                rgbBytes[2] = (byte)((rgbInt >> 8) & 0xff);
+                rgbBytes[3] = (byte)((rgbInt) & 0xff);
+
+                for (int i = 0; i < 4; i++) {
+                    insert = (byte)(randomByte & aesMask);
+                    into = (byte)(rgbBytes[i] & rgbMask);
+                    rgbBytes[i] = (byte)(insert | into);
+
+                    randomByte = (byte)(randomByte >> 2);
+                }
+
+                img.setRGB(x, y, ByteBuffer.wrap(rgbBytes).getInt());
             }
         }
 
+        // Zum Schluss wird das manipulierte Bild zurückgegeben.
         return img;
     }
 
@@ -207,12 +234,11 @@ public class Steganography {
         int width = img.getWidth();
         int height = img.getHeight();
         int rgbInt;
-        int x = 0;
+        int x = -1;
         int y = 0;
         byte aesMask = 0b00111111;
         byte rgbMask = 0b00000011;
         int shift = 6;
-        int layer = 0;
 
         // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
@@ -220,7 +246,23 @@ public class Steganography {
 
         while(next) {
 
-            // Anfangs wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
+            // Zunächst rückt der Lesekopf ein Pixel weiter. Zu Beginn startet er außerhalb des Bildes und rückt auf
+            // das erste Pixel. Am Ende einer Zeile wird in die nächste gesprungen. Am Ende des Bildes wird einmalig
+            // von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte manipuliert werden. Dementsprechend
+            // wird eine Maske definiert.
+            x++;
+            if (x >= width) {
+                y++;
+                if (y >= height) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText("This picture doesn't seem to contain any hidden files.");
+                    alert.showAndWait();
+                    return null;
+                }
+                x = 0;
+            }
+
+            // Danach wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
             // Alpha --> Rot --> Grün --> Blau
             rgbInt = img.getRGB(x, y);
             rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
@@ -294,30 +336,6 @@ public class Steganography {
                         }
 
                         outputDocument.write(cipherByte);
-                }
-            }
-
-            // Springe zum nächsten Pixel. Am Ende einer Zeile wird in die nächste gesprungen.
-            // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
-            // ausgelesen werden. Dementsprechend wird die Maske angepasst.
-            // TODO An Random füllen anpassen
-            x += 5;
-            if (x >= width) {
-                y++;
-                x = y%5 + layer;
-
-                if (y >= height) {
-                    layer++;
-
-                    if (layer >= 5) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setContentText("This picture doesn't seem to contain any hidden files.");
-                        alert.showAndWait();
-                        return null;
-                    }
-
-                    x = layer;
-                    y = 0;
                 }
             }
         }
