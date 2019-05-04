@@ -298,20 +298,20 @@ public class Steganography {
                     case 42:
                         countCipherEndFlag++;
                         outputFileType.write(cipherByte);
-
-                        // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
-                        if (countCipherEndFlag == 4) {
-                            next = false;
-                        }
-
                         break;
                     default:
+                        if (countCipherEndFlag >= 4) {
+                            next = false;
+                            break;
+                        }
+
                         // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
                         if (countCipherEndFlag != 0 ) {
                             countCipherEndFlag = 0;
                         }
 
                         outputFileType.write(cipherByte);
+                        break;
                 }
             } else {
 
@@ -322,20 +322,21 @@ public class Steganography {
                     case 88:
                         countDocumentEndFlag++;
                         outputDocument.write(cipherByte);
-
-                        // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
-                        if (countDocumentEndFlag == 4) {
-                            readFileType = true;
-                        }
-
                         break;
                     default:
+                        if (countDocumentEndFlag >= 4) {
+                            outputFileType.write(cipherByte);
+                            readFileType = true;
+                            break;
+                        }
+
                         // Wenn nach einer 88 keine weitere 88 gelesen wird, so setze den Zähler zurück.
                         if (countDocumentEndFlag != 0) {
                             countDocumentEndFlag = 0;
                         }
 
                         outputDocument.write(cipherByte);
+                        break;
                 }
             }
         }
