@@ -1,6 +1,7 @@
 package main.cryptography;
 
 import javafx.scene.control.Alert;
+import main.cryptography.AES;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -9,8 +10,10 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.text.BreakIterator;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
+import java.util.zip.*;
 
 /**
  * Klasse zum Verstecken und Extrahieren von Informationen in/aus Bildern.
@@ -60,17 +63,22 @@ public class Steganography {
         // Anschließend wird das Dokument mittels AES verschlüsselt.
         byte[] documentBytes = Files.readAllBytes(document.toPath());
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, sharedSecret);
-
         // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des Dokuments.
-        byte[] documentEndFlag = new byte[4];
-        Arrays.fill(documentEndFlag, (byte) 88);
+
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende der Datei
+        byte[] documentEndFlag = new byte[5];
+        Arrays.fill(documentEndFlag, endPoints[88]);
+        documentEndFlag[4] = (byte) (documentEndFlag[4] << 1);
+
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
+        byte[] chipherEndFlag = new byte[5];
+        Arrays.fill(chipherEndFlag, endPoints[42]);
+        chipherEndFlag[4] = (byte) (chipherEndFlag[4] << 1);
 
         // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
         byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
-
-        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
-        byte[] chipherEndFlag = new byte[4];
-        Arrays.fill(chipherEndFlag, (byte) 42);
 
         // Fügt die Byte-Arrays zu einem gesamten Chiffretext zusammen.
         // Dokument (zipped, encrypted) --> Dokument-Flag --> Dateityp (encrypted) --> Ende-Flag
@@ -100,31 +108,17 @@ public class Steganography {
         int width = img.getWidth();
         int height = img.getHeight();
         int rgbInt;
-        int x = -1;
+        int x = 0;
         int y = 0;
         byte aesMask = (byte) 0b00000011;
         byte rgbMask = (byte) 0b11111100;
+        int shift = 0;
+        int layer = 0;
 
         // Für jedes Byte des Chiffretextes: Bits auf ARGB-Wert eines Pixels verteilen.
         for (byte aesByte: cipher) {
 
-            // Zunächst rückt der Lesekopf ein Pixel weiter. Zu Beginn startet er außerhalb des Bildes und rückt auf
-            // das erste Pixel. Am Ende einer Zeile wird in die nächste gesprungen. Am Ende des Bildes wird einmalig
-            // von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte manipuliert werden. Dementsprechend
-            // wird eine Maske definiert.
-            x++;
-            if (x >= width) {
-                y++;
-                if (y >= height) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText("This picture is not big enough for this File.");
-                    alert.showAndWait();
-                    return null;
-                }
-                x = 0;
-            }
-
-            // Danach wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
+            // Anfangs wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
             // Alpha --> Rot --> Grün --> Blau
             rgbInt = img.getRGB(x, y);
             rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
@@ -145,54 +139,36 @@ public class Steganography {
             for (int i = 0; i < 4; i++) {
                 insert = (byte)(aesByte & aesMask);
                 into = (byte)(rgbBytes[i] & rgbMask);
-                rgbBytes[i] = (byte)(insert | into);
+                rgbBytes[i] = (byte)((insert << shift) | into);
 
                 aesByte = (byte)(aesByte >> 2);
             }
 
             // Der mit den Informationen angereicherte ARGB-Wert wird nach der Codierung in das Bild geschrieben.
             img.setRGB(x, y, ByteBuffer.wrap(rgbBytes).getInt());
-        }
 
-        // Wurden noch nicht alle Pixel manipuliert, so werden die restlichen Pixel mit zufälligen Werten beschrieben.
-        if (x != width-1 && y != height-1) {
-
-            // Dafür wird ein Byte-Array mit einer Länge gleich der Anzahl an verbleibenden Pixeln generiert und
-            // anschließend mit Zufallswertden befüllt.
-            byte[] randoms = new byte[(width-x-1) + ((height-y-1)*width)];
-            new Random().nextBytes(randoms);
-
-            // Die Codierung der Pixel erfolgt analog zum vorherigen Ablauf mit dem Chiffretext.
-            for (byte randomByte: randoms) {
-                x++;
-                if (x >= width) {
-                    y++;
-                    if (y >= height) {
-                        System.out.println("Error while encrypting: Something went wrong.");
-                        break;
+            // Danach rückt der Algorithmus ein Pixel weiter. Am Ende einer Zeile wird in die nächste gesprungen.
+            // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
+            // manipuliert werden. Dementsprechend wird eine Maske definiert.
+            // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht die Codierung ab.
+            x += 5;
+            if (x >= width) {
+                x = y%5 + layer;
+                y++;
+                if (y >= height) {
+                    if (layer >= 5) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("This picture is not big enough for this File.");
+                        alert.showAndWait();
+                        return null;
                     }
+                    layer++;
                     x = 0;
+                    y = 0;
                 }
-
-                rgbInt = img.getRGB(x, y);
-                rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
-                rgbBytes[1] = (byte)((rgbInt >> 16) & 0xff);
-                rgbBytes[2] = (byte)((rgbInt >> 8) & 0xff);
-                rgbBytes[3] = (byte)((rgbInt) & 0xff);
-
-                for (int i = 0; i < 4; i++) {
-                    insert = (byte)(randomByte & aesMask);
-                    into = (byte)(rgbBytes[i] & rgbMask);
-                    rgbBytes[i] = (byte)(insert | into);
-
-                    randomByte = (byte)(randomByte >> 2);
-                }
-
-                img.setRGB(x, y, ByteBuffer.wrap(rgbBytes).getInt());
             }
         }
 
-        // Zum Schluss wird das manipulierte Bild zurückgegeben.
         return img;
     }
 
@@ -222,6 +198,9 @@ public class Steganography {
         // Das übermittelte Bild wird in ein BufferedImage verwandelt, um die ARGB-Werte auszulesen.
         BufferedImage img = ImageIO.read(picture);
 
+        //Berechnung der Endpunkte
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+
         // Einige Hilfsvariablen zum Scannen des Bildes und Auslesen von Informationen.
         boolean readFileType = false;
         boolean next = true;
@@ -234,11 +213,12 @@ public class Steganography {
         int width = img.getWidth();
         int height = img.getHeight();
         int rgbInt;
-        int x = -1;
+        int x = 0;
         int y = 0;
         byte aesMask = 0b00111111;
         byte rgbMask = 0b00000011;
         int shift = 6;
+        int layer = 0;
 
         // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
@@ -246,23 +226,7 @@ public class Steganography {
 
         while(next) {
 
-            // Zunächst rückt der Lesekopf ein Pixel weiter. Zu Beginn startet er außerhalb des Bildes und rückt auf
-            // das erste Pixel. Am Ende einer Zeile wird in die nächste gesprungen. Am Ende des Bildes wird einmalig
-            // von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte manipuliert werden. Dementsprechend
-            // wird eine Maske definiert.
-            x++;
-            if (x >= width) {
-                y++;
-                if (y >= height) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText("This picture doesn't seem to contain any hidden files.");
-                    alert.showAndWait();
-                    return null;
-                }
-                x = 0;
-            }
-
-            // Danach wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
+            // Anfangs wird der ARGB-Wert des aktuellen Pixels geladen und in seine 4 Bytes aufgeteilt.
             // Alpha --> Rot --> Grün --> Blau
             rgbInt = img.getRGB(x, y);
             rgbBytes[0] = (byte)((rgbInt >> 24) & 0xff);
@@ -294,49 +258,67 @@ public class Steganography {
                 // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert 42 erfasst, so handelt es sich um das
                 // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im Dateinamen und der Algorithmus wartet
                 // weiterhin auf vier Mal 42 in Folge.
-                switch (cipherByte) {
-                    case 42:
-                        countCipherEndFlag++;
-                        outputFileType.write(cipherByte);
-                        break;
-                    default:
-                        if (countCipherEndFlag >= 4) {
-                            next = false;
-                            break;
-                        }
+                if (cipherByte == endPoints[42])
+                {
+                    countCipherEndFlag++;
+                    outputFileType.write(cipherByte);
 
-                        // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
-                        if (countCipherEndFlag != 0 ) {
-                            countCipherEndFlag = 0;
-                        }
-
+                } else {
+                    // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
+                    if (countCipherEndFlag >= 4) {
+                        next = false;
+                    } else {
                         outputFileType.write(cipherByte);
-                        break;
+                    }
+
+                    // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
+                    if (countCipherEndFlag != 0 ) {
+                        countCipherEndFlag = 0;
+                    }
                 }
+
             } else {
 
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert 88 erfasst, so handelt es sich um das
-                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 88 im codierten Dokument und der Algorithmus
+                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im codierten Dokument und der Algorithmus
                 // wartet weiterhin auf vier Mal 88 in Folge.
-                switch (cipherByte) {
-                    case 88:
-                        countDocumentEndFlag++;
-                        outputDocument.write(cipherByte);
-                        break;
-                    default:
-                        if (countDocumentEndFlag >= 4) {
-                            outputFileType.write(cipherByte);
-                            readFileType = true;
-                            break;
-                        }
+                if (cipherByte == endPoints[88]){
+                    countDocumentEndFlag++;
+                    outputDocument.write(cipherByte);
 
-                        // Wenn nach einer 88 keine weitere 88 gelesen wird, so setze den Zähler zurück.
-                        if (countDocumentEndFlag != 0) {
-                            countDocumentEndFlag = 0;
-                        }
-
+                } else {
+                    // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
+                    if (countDocumentEndFlag >= 4) {
+                        readFileType = true;
+                    } else {
                         outputDocument.write(cipherByte);
-                        break;
+                    }
+
+                    // Wenn nach einer 88 keine weitere 88 gelesen wird, so setze den Zähler zurück.
+                    if (countDocumentEndFlag != 0) {
+                        countDocumentEndFlag = 0;
+                    }
+                }
+            }
+
+            // Springe zum nächsten Pixel. Am Ende einer Zeile wird in die nächste gesprungen.
+            // Am Ende des Bildes wird einmalig von Vorne angefangen, indem die nächsthöheren Bits der ARGB-Werte
+            // ausgelesen werden. Dementsprechend wird die Maske angepasst.
+            // Terminiert der Algorithmus auch nach dem Beschreiben der Bits 3 und 4 nicht, so bricht der Algorithmus ab.
+            x += 5;
+            if (x >= width) {
+                x = y%5 + layer;
+                y++;
+                if (y >= height) {
+                    if (layer >= 5) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setContentText("This picture doesn't seem to contain any hidden files.");
+                        alert.showAndWait();
+                        return null;
+                    }
+                    layer++;
+                    x = 0;
+                    y = 0;
                 }
             }
         }
