@@ -69,15 +69,11 @@ public class Steganography {
         byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).array(), sharedSecret);
 
         byte[] documentEndFlag = new byte[5];
-        if (endPoints != null) {
-            Arrays.fill(documentEndFlag, endPoints[88]);
-        }
+        Arrays.fill(documentEndFlag, endPoints[88]);
         documentEndFlag[4] = (byte) (documentEndFlag[4] << 1);
 
         byte[] chipherEndFlag = new byte[5];
-        if (endPoints != null) {
-            Arrays.fill(chipherEndFlag, endPoints[42]);
-        }
+        Arrays.fill(chipherEndFlag, endPoints[42]);
         chipherEndFlag[4] = (byte) (chipherEndFlag[4] << 1);
 
         // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
@@ -308,22 +304,21 @@ public class Steganography {
                 // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert an der Stelle 42 im Endpoint-Array erfasst,
                 // so handelt es sich um das Ende-Flag. Andernfalls handelt es sich um eine zufällige Zahl im Dateinamen
                 // und der Algorithmus wartet weiterhin auf vier Mal den Wert an der Stelle 42 im Endpoint-Array.
-                if (cipherByte == endPoints[42])
-                {
+                if (cipherByte == endPoints[42]) {
                     countCipherEndFlag++;
                     outputFileType.write(cipherByte);
-
                 } else {
+
                     // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
                     if (countCipherEndFlag >= 4) {
                         next = false;
                     } else {
                         outputFileType.write(cipherByte);
-                    }
 
-                    // Wenn nach einem Wert des Ende-Flags nicht der gleiche Wert kommt, so setze den Zähler zurück.
-                    if (countCipherEndFlag != 0 ) {
-                        countCipherEndFlag = 0;
+                        // Wenn nach einem Wert des Ende-Flags nicht der gleiche Wert kommt, so setze den Zähler zurück.
+                        if (countCipherEndFlag != 0 ) {
+                            countCipherEndFlag = 0;
+                        }
                     }
                 }
 
@@ -332,18 +327,16 @@ public class Steganography {
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert an der Stelle 88 im Endpoint-Array erfasst, so
                 // handelt es sich um das Ende-Flag. Andernfalls handelt es sich um eine zufällige Zahl im Dateinamen
                 // und der Algorithmus wartet weiterhin auf vier Mal den Wert aus Stelle 88 im Endpoint-Array.
-                if (endPoints != null) {
-                    if (cipherByte == endPoints[88]){
-                        countDocumentEndFlag++;
-                        outputDocument.write(cipherByte);
+                if (cipherByte == endPoints[88]) {
+                    countDocumentEndFlag++;
+                    outputDocument.write(cipherByte);
+                } else {
 
+                    // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
+                    if (countDocumentEndFlag >= 4) {
+                        readFileType = true;
                     } else {
-                        // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
-                        if (countDocumentEndFlag >= 4) {
-                            readFileType = true;
-                        } else {
-                            outputDocument.write(cipherByte);
-                        }
+                        outputDocument.write(cipherByte);
 
                         // Wenn nach einem Wert des Ende-Flags nicht der gleiche Wert kommt, so setze den Zähler zurück.
                         if (countDocumentEndFlag != 0) {
