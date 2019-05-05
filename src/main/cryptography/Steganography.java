@@ -326,7 +326,7 @@ public class Steganography {
             } else {
 
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert 88 erfasst, so handelt es sich um das
-                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im codierten Dokument und der Algorithmus
+                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 88 im codierten Dokument und der Algorithmus
                 // wartet weiterhin auf vier Mal 88 in Folge.
                 if (endPoints != null) {
                     if (cipherByte == endPoints[88]){
