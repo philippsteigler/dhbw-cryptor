@@ -149,10 +149,6 @@ public class Steganography {
             // 0 sind. Das ARGB-Byte wird im Gegensatz dazu so manipuliert, dass genau die ersten beiden Bits 0 sind.
             // Zum Schluss werden die beiden maskierten Bytes miteinander ODER-Verknüpft, sodass die restlichen höheren
             // Bits erhalten bleiben, wodurch der ursprüngliche Farbwert kaum abweicht.
-            //
-            // Dieses Verfahren wird in vier Runden durchgeführt, wobei das Byte des Chiffretextes jeweils um 2 Bits
-            // geshiftet wird. Die Masken und sind an dieser Stelle variabel, da im zweiten Durchgang die nächsthöheren
-            // Bits 3 und 4 beschrieben werden, was andere Masken erfordert.
             for (int i = 0; i < 4; i++) {
                 insert = (byte)(aesByte & aesMask);
                 into = (byte)(rgbBytes[i] & rgbMask);
@@ -257,7 +253,6 @@ public class Steganography {
         int y = 0;
         byte aesMask = 0b00111111;
         byte rgbMask = 0b00000011;
-        int shift = 6;
 
         // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
@@ -298,7 +293,7 @@ public class Steganography {
             // Chiffretext-Byte stellt sicher, dass stets 0 nachgeschoben und mit dem Chiffrewert überschrieben werden.
             for (byte b: rgbBytes) {
                 input = (byte)(b & rgbMask);
-                input = (byte)(input << shift);
+                input = (byte)(input << 6);
 
                 cipherByte = (byte)(cipherByte >> 2);
                 cipherByte = (byte)(cipherByte & aesMask);
