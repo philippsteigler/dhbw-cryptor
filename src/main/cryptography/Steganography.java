@@ -61,16 +61,24 @@ public class Steganography {
         byte[] documentBytes = Files.readAllBytes(document.toPath());
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, sharedSecret);
 
-        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des Dokuments.
-        byte[] documentEndFlag = new byte[4];
-        Arrays.fill(documentEndFlag, (byte) 88);
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende der Datei
+        byte[] documentEndFlag = new byte[5];
+        if (endPoints != null) {
+            Arrays.fill(documentEndFlag, endPoints[88]);
+        }
+        documentEndFlag[4] = (byte) (documentEndFlag[4] << 1);
+
+        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
+        byte[] chipherEndFlag = new byte[5];
+        if (endPoints != null) {
+            Arrays.fill(chipherEndFlag, endPoints[42]);
+        }
+        chipherEndFlag[4] = (byte) (chipherEndFlag[4] << 1);
 
         // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
         byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
-
-        // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende des gesamten Chiffretextes
-        byte[] chipherEndFlag = new byte[4];
-        Arrays.fill(chipherEndFlag, (byte) 42);
 
         // Fügt die Byte-Arrays zu einem gesamten Chiffretext zusammen.
         // Dokument (zipped, encrypted) --> Dokument-Flag --> Dateityp (encrypted) --> Ende-Flag
@@ -222,6 +230,8 @@ public class Steganography {
         // Das übermittelte Bild wird in ein BufferedImage verwandelt, um die ARGB-Werte auszulesen.
         BufferedImage img = ImageIO.read(picture);
 
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+
         // Einige Hilfsvariablen zum Scannen des Bildes und Auslesen von Informationen.
         boolean readFileType = false;
         boolean next = true;
@@ -294,49 +304,48 @@ public class Steganography {
                 // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert 42 erfasst, so handelt es sich um das
                 // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im Dateinamen und der Algorithmus wartet
                 // weiterhin auf vier Mal 42 in Folge.
-                switch (cipherByte) {
-                    case 42:
-                        countCipherEndFlag++;
-                        outputFileType.write(cipherByte);
-                        break;
-                    default:
-                        if (countCipherEndFlag >= 4) {
-                            next = false;
-                            break;
-                        }
+                if (cipherByte == endPoints[42])
+                {
+                    countCipherEndFlag++;
+                    outputFileType.write(cipherByte);
 
-                        // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
-                        if (countCipherEndFlag != 0 ) {
-                            countCipherEndFlag = 0;
-                        }
-
+                } else {
+                    // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
+                    if (countCipherEndFlag >= 4) {
+                        next = false;
+                    } else {
                         outputFileType.write(cipherByte);
-                        break;
+                    }
+
+                    // Wenn nach einer 42 keine weitere 42 gelesen wird, so setze den Zähler zurück.
+                    if (countCipherEndFlag != 0 ) {
+                        countCipherEndFlag = 0;
+                    }
                 }
+
             } else {
 
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert 88 erfasst, so handelt es sich um das
-                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 88 im codierten Dokument und der Algorithmus
+                // Ende-Flag. Andernfalls handelt es sich um eine zufällige 42 im codierten Dokument und der Algorithmus
                 // wartet weiterhin auf vier Mal 88 in Folge.
-                switch (cipherByte) {
-                    case 88:
+                if (endPoints != null) {
+                    if (cipherByte == endPoints[88]){
                         countDocumentEndFlag++;
                         outputDocument.write(cipherByte);
-                        break;
-                    default:
+
+                    } else {
+                        // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
                         if (countDocumentEndFlag >= 4) {
-                            outputFileType.write(cipherByte);
                             readFileType = true;
-                            break;
+                        } else {
+                            outputDocument.write(cipherByte);
                         }
 
                         // Wenn nach einer 88 keine weitere 88 gelesen wird, so setze den Zähler zurück.
                         if (countDocumentEndFlag != 0) {
                             countDocumentEndFlag = 0;
                         }
-
-                        outputDocument.write(cipherByte);
-                        break;
+                    }
                 }
             }
         }
