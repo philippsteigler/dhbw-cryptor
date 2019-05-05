@@ -61,7 +61,7 @@ public class Steganography {
         byte[] documentBytes = Files.readAllBytes(document.toPath());
         byte[] encryptedDocumentBytes = AES.encrypt(documentBytes, sharedSecret);
 
-        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).array(), sharedSecret);
 
         // Erstellt eine Byte-Folge als Flag zur Erkennung vom Ende der Datei
         byte[] documentEndFlag = new byte[5];
@@ -230,7 +230,7 @@ public class Steganography {
         // Das übermittelte Bild wird in ein BufferedImage verwandelt, um die ARGB-Werte auszulesen.
         BufferedImage img = ImageIO.read(picture);
 
-        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).putInt(130).array(), sharedSecret);
+        byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).array(), sharedSecret);
 
         // Einige Hilfsvariablen zum Scannen des Bildes und Auslesen von Informationen.
         boolean readFileType = false;
