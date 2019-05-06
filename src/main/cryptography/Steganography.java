@@ -64,17 +64,19 @@ public class Steganography {
         // Zur wiedererkkenung des Endes der Datei sowie des Namens/Dateityps im Bild werden Flags angehängt.
         // Diese werden zur Verschleierung stets vom symmetrischen Schlüssel abgeleitet, sodass die Flags variieren.
         //
-        // Dafür wird ein leeres Bytearray mit dem Key verschlüsselt. Der Wert an der Stelle 88 ist das Flag für das
-        // Dateiende, der Wert an Stelle 42 ist das Flag für das Ende des Dateinamens/-typs.
+        // Dafür wird ein leeres Bytearray mit dem Key verschlüsselt. Die Werte an den Stellen 88 - 92 sind das Flag für das
+        // Dateiende, die Werte an den Stellen 42 - 46 sind das Flag für das Ende des Dateinamens/-typs.
         byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).array(), sharedSecret);
 
         byte[] documentEndFlag = new byte[5];
-        Arrays.fill(documentEndFlag, endPoints[88]);
-        documentEndFlag[4] = (byte) (documentEndFlag[4] << 1);
+        for (int i = 0; i < documentEndFlag.length; i++) {
+            documentEndFlag[i] = endPoints[88 + i];
+        }
 
-        byte[] chipherEndFlag = new byte[5];
-        Arrays.fill(chipherEndFlag, endPoints[42]);
-        chipherEndFlag[4] = (byte) (chipherEndFlag[4] << 1);
+        byte[] cipherEndFlag = new byte[5];
+        for (int i = 0; i < cipherEndFlag.length; i++) {
+            cipherEndFlag[i] = endPoints[42 + i];
+        }
 
         // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
         byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
@@ -85,7 +87,7 @@ public class Steganography {
         byteArrayOutputStream.write(encryptedDocumentBytes);
         byteArrayOutputStream.write(documentEndFlag);
         byteArrayOutputStream.write(encryptedFileNameBytes);
-        byteArrayOutputStream.write(chipherEndFlag);
+        byteArrayOutputStream.write(cipherEndFlag);
         byte[] cipher = byteArrayOutputStream.toByteArray();
         byteArrayOutputStream.close();
 
@@ -301,47 +303,52 @@ public class Steganography {
             // Dateiname/-typ auslesen (nach dem Ende der Datei, bis zum Flag vom Ende des Namens/Typs).
             if (readFileType) {
 
+                outputFileType.write(cipherByte);
+
                 // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert an der Stelle 42 im Endpoint-Array erfasst,
                 // so handelt es sich um das Ende-Flag. Andernfalls handelt es sich um eine zufällige Zahl im Dateinamen
                 // und der Algorithmus wartet weiterhin auf vier Mal den Wert an der Stelle 42 im Endpoint-Array.
-                if (cipherByte == endPoints[42]) {
+                if (cipherByte == endPoints[42 + countCipherEndFlag]) {
                     countCipherEndFlag++;
-                    outputFileType.write(cipherByte);
-                } else {
 
                     // Wurde das vierstellige Ende-Flag des gesamten Chiffretextes erfasst, Beende den Lesevorgang.
-                    if (countCipherEndFlag >= 4) {
+                    if (countCipherEndFlag >= 5) {
                         next = false;
-                    } else {
-                        outputFileType.write(cipherByte);
-
-                        // Wenn nach einem Wert des Ende-Flags nicht der gleiche Wert kommt, so setze den Zähler zurück.
-                        if (countCipherEndFlag != 0 ) {
-                            countCipherEndFlag = 0;
-                        }
                     }
+
+                } else {
+                    // Wenn die Endflag Reihenfolge unterbrochen wird, wird getestet ob das aktuelle cipherByte dem ersten
+                    // Endflag entspricht. Dementsprechend wird countCipherEndFlag gesetzt.
+                    if (cipherByte == endPoints[42]) {
+                        countCipherEndFlag = 1;
+                    } else {
+                        countCipherEndFlag = 0;
+                    }
+
                 }
 
             } else {
 
+                outputDocument.write(cipherByte);
+
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert an der Stelle 88 im Endpoint-Array erfasst, so
                 // handelt es sich um das Ende-Flag. Andernfalls handelt es sich um eine zufällige Zahl im Dateinamen
                 // und der Algorithmus wartet weiterhin auf vier Mal den Wert aus Stelle 88 im Endpoint-Array.
-                if (cipherByte == endPoints[88]) {
+                if (cipherByte == endPoints[88 + countDocumentEndFlag]) {
                     countDocumentEndFlag++;
-                    outputDocument.write(cipherByte);
-                } else {
 
                     // Wurde das vierstellige Ende-Flag erfasst, wechsel in den Dateiname/-typ-Lesen-Modus.
-                    if (countDocumentEndFlag >= 4) {
+                    if (countDocumentEndFlag >= 5) {
                         readFileType = true;
-                    } else {
-                        outputDocument.write(cipherByte);
+                    }
 
-                        // Wenn nach einem Wert des Ende-Flags nicht der gleiche Wert kommt, so setze den Zähler zurück.
-                        if (countDocumentEndFlag != 0) {
-                            countDocumentEndFlag = 0;
-                        }
+                } else {
+                    // Wenn die Endflag Reihenfolge unterbrochen wird, wird getestet ob das aktuelle cipherByte dem ersten
+                    // Endflag entspricht. Dementsprechend wird countDocumentEndFlag gesetzt.
+                    if (cipherByte == endPoints[88]) {
+                        countDocumentEndFlag = 1;
+                    } else {
+                        countDocumentEndFlag = 0;
                     }
                 }
             }
@@ -350,11 +357,11 @@ public class Steganography {
         // Als Ergebnis liegen zwei Outputstreams vor: Dokument und dessen Dateiname mit Typ, jeweils mit Flag am Ende
         // Deshalb werden die Outputstreams in Byte-Arrays geschrieben. Danach werden die Flags abgeschnitten.
         byte[] flaggedEncryptedDocumentBytes = outputDocument.toByteArray();
-        byte[] encryptedDocumentBytes = new byte[flaggedEncryptedDocumentBytes.length - 4];
+        byte[] encryptedDocumentBytes = new byte[flaggedEncryptedDocumentBytes.length - 5];
         System.arraycopy(flaggedEncryptedDocumentBytes, 0, encryptedDocumentBytes, 0, encryptedDocumentBytes.length);
 
         byte[] flaggedEncryptedFileNameBytes = outputFileType.toByteArray();
-        byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 4];
+        byte[] encryptedFileNameBytes = new byte[flaggedEncryptedFileNameBytes.length - 5];
         System.arraycopy(flaggedEncryptedFileNameBytes, 0, encryptedFileNameBytes, 0, encryptedFileNameBytes.length);
 
         // Nach Entfernen der Flags wird das Dokument mit dem übergebenen Shared-Secret entschlüsselt.
