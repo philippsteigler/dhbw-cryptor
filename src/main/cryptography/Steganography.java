@@ -16,7 +16,7 @@ import java.util.Random;
  * Klasse zum Verstecken und Extrahieren von Informationen in/aus Bildern.
  * Hierfür wurde ein eigenes proprietäres Verfahren entwickelt.
  *
- * Zunächst wird das eingelesene Dokument komprimiert und mit einem bekannten und sicheren Verfahren verschlüsselt.
+ * Zunächst wird das eingelesene Dokument mit einem bekannten und sicheren Verfahren verschlüsselt.
  * Anschließend wird der Chiffretext in die einzelnen Pixel eines PNG-Bildes codiert.
  *
  * Bei diesem Verfahren werden jeweils die niedrigsten Bits der ARGB-Werte mit Informationen zur verschlüsselten
@@ -28,9 +28,9 @@ public class Steganography {
     /**
      * Funktion zum Verstecken eines Dokuments in einem PNG-Bild.
      *
-     * Das Dokument wird mit GZIP komprimiert und anschließend mit AES verschlüsselt. Hierfür wird das Shared-Secret
-     * der Zielperson übergeben und ein AES-Key abgeleitet. Danach wird der Byte-Strom mit einem Flag zur
-     * Wiedererkennung vom Ende der codierten Datei gekennzeichnet.
+     * Das Dokument wird mit mit AES verschlüsselt. Hierfür wird das Shared-Secret der Zielperson übergeben und ein
+     * AES-Key abgeleitet. Danach wird der Byte-Strom mit einem Flag zur Wiedererkennung vom Ende der codierten Datei
+     * gekennzeichnet.
      *
      * Abschließend wird die Endung der ursprünglichen Datei ebenfalls mit AES verschlüsselt und an die Bytefolge
      * angehängt. Dies dient der Rekonstruktion des originalen Dateiformats. Auch an diese Information wird ein Flag
@@ -42,12 +42,6 @@ public class Steganography {
      * die acht Bits des Chiffre-Bytes gleichmäßig auf die vier Bytes des Pixels verteilt werden müssen:
      * Jeweils 2 Bits auf ein ARGB-Byte. Dabei werden stets die niedrigsten beiden Bits (1 und 2) eines ARGB-Wertes
      * überschrieben, sodass der Farbwert im Ausgabe-Bild maximal um 4 Einheiten abweicht.
-     *
-     * Wurden alle Pixel codiert, so wird dieses steganografische Verfahren ein Mal wiederholt. Dabei werden aber nicht
-     * die untersten beiden Bits der ARGB-Bytes codiert, sondern die nächsthöheren: Bit 3 und 4. Um zu vermeiden, dass
-     * die ARGB-Werte des originalen Bildes zu stark manipuliert werden, erfolgt nach dieser Runde keine weitere
-     * Codierung der nächsthöheren Bits. Dies bildet einen Kompromiss zwischen Sichtbarkeit der Manipulation und
-     * Kapazität zur Codierung einer Datei in das Bild, da somit maximal 50% der Bits überschrieben werden.
      *
      * @param document Zu versteckende Datei als File.
      * @param picture PNG-Bild, in welches die Datei eingebettet wird.
@@ -69,20 +63,16 @@ public class Steganography {
         byte[] endPoints = AES.encrypt(ByteBuffer.allocate(100).array(), sharedSecret);
 
         byte[] documentEndFlag = new byte[5];
-        for (int i = 0; i < documentEndFlag.length; i++) {
-            documentEndFlag[i] = endPoints[88 + i];
-        }
+        System.arraycopy(endPoints, 88, documentEndFlag, 0, documentEndFlag.length);
 
         byte[] cipherEndFlag = new byte[5];
-        for (int i = 0; i < cipherEndFlag.length; i++) {
-            cipherEndFlag[i] = endPoints[42 + i];
-        }
+        System.arraycopy(endPoints, 42, cipherEndFlag, 0, cipherEndFlag.length);
 
         // Extrahiert den Dateinamen als Byte-Folge. Diese wird ebenfalls mit dem gleichen Key verschlüsselt.
         byte[] encryptedFileNameBytes = AES.encrypt(document.getName().getBytes(Charset.forName("UTF-8")), sharedSecret);
 
         // Fügt die Byte-Arrays zu einem gesamten Chiffretext zusammen.
-        // Dokument (zipped, encrypted) --> Dokument-Flag --> Dateityp (encrypted) --> Ende-Flag
+        // Dokument (encrypted) --> Dokument-Flag --> Dateityp (encrypted) --> Ende-Flag
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.write(encryptedDocumentBytes);
         byteArrayOutputStream.write(documentEndFlag);
@@ -209,10 +199,8 @@ public class Steganography {
      * letzten beiden Bits der ARGB-Bytes zu einem Chiffretext-Byte zusammengesetzt. Die beim Verstecken codierten
      * Flags kennzeichnen an dieser Stelle das Ende des Dokuments und des mitgelieferten Dateinamens.
      *
-     * Wurde kein Flag erfasst, so werden nach Durchlaufen aller Pixel auf der nächsthöheren Ebene die Bits 3 und 4
-     * ausgewertet. Der extrahierte Chiffretext wird anschließend unter Verwendung eines geheimen Keys entschlüsselt -
-     * vorausgesetzt es handelt sich um den gleichen Key wie bei der Verschlüsselung. War dies erfolgreich, so wird die
-     * entschlüsselte Datei nun mit GZIP dekomprimiert.
+     * Der extrahierte Chiffretext wird anschließend unter Verwendung eines geheimen Keys entschlüsselt - vorausgesetzt
+     * es handelt sich um den gleichen Key wie bei der Verschlüsselung.
      *
      * Das Ergebnis ist eine entschlüsselte Datei und deren urspürnglicher Dateiname mit Dateityp, sodass die originale
      * Datei vollständig wiederhergestellt werden kann. Wurde auf der zweiten Ebene auch kein Ende-Flag erfasst, so
@@ -252,7 +240,7 @@ public class Steganography {
         byte aesMask = 0b00111111;
         byte rgbMask = 0b00000011;
 
-        // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt, dekomprimiert, etc.
+        // Extrahierte Daten werden in Outputstreams geschrieben und später entschlüsselt.
         ByteArrayOutputStream outputDocument = new ByteArrayOutputStream();
         ByteArrayOutputStream outputFileType = new ByteArrayOutputStream();
 
@@ -302,7 +290,6 @@ public class Steganography {
             // Es wird zwischen zwei Modi unterschieden: Dokument auslesen (bis zum Flag vom Ende der Datei) und
             // Dateiname/-typ auslesen (nach dem Ende der Datei, bis zum Flag vom Ende des Namens/Typs).
             if (readFileType) {
-
                 outputFileType.write(cipherByte);
 
                 // Im Modus Dateiname/-typ auslesen: Wird vier Mal der Wert an der Stelle 42 im Endpoint-Array erfasst,
@@ -315,7 +302,6 @@ public class Steganography {
                     if (countCipherEndFlag >= 5) {
                         next = false;
                     }
-
                 } else {
                     // Wenn die Endflag Reihenfolge unterbrochen wird, wird getestet ob das aktuelle cipherByte dem ersten
                     // Endflag entspricht. Dementsprechend wird countCipherEndFlag gesetzt.
@@ -326,9 +312,7 @@ public class Steganography {
                     }
 
                 }
-
             } else {
-
                 outputDocument.write(cipherByte);
 
                 // Im Modus Dokument auslesen: Wird vier Mal der Wert an der Stelle 88 im Endpoint-Array erfasst, so
@@ -341,7 +325,6 @@ public class Steganography {
                     if (countDocumentEndFlag >= 5) {
                         readFileType = true;
                     }
-
                 } else {
                     // Wenn die Endflag Reihenfolge unterbrochen wird, wird getestet ob das aktuelle cipherByte dem ersten
                     // Endflag entspricht. Dementsprechend wird countDocumentEndFlag gesetzt.
