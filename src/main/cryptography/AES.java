@@ -23,7 +23,7 @@ public class AES {
      */
     public static byte[] encrypt(byte[] clearBytes, byte[] secret) {
         try {
-            // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
+            // Erzeuge eine Cipher-Instanz vom Typ AES im CBC-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             IvParameterSpec initVector = new IvParameterSpec(secret, 16, 16);
             cipher.init(Cipher.ENCRYPT_MODE,  new SecretKeySpec(secret, secret.length - 32, 16, "AES"), initVector);
@@ -48,7 +48,7 @@ public class AES {
      */
     public static byte[] decrypt(byte[] chiffreBytes, byte[] secret) {
         try {
-            // Erzeuge eine Cipher-Instanz vom Typ AES im ECB-Modus und initialisiere diese mit dem Shared-Secret.
+            // Erzeuge eine Cipher-Instanz vom Typ AES im CBC-Modus und initialisiere diese mit dem Shared-Secret.
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             IvParameterSpec initVector = new IvParameterSpec(secret, 16, 16);
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, secret.length - 32, 16, "AES"), initVector);

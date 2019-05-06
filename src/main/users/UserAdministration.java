@@ -2,8 +2,6 @@ package main.users;
 
 import main.cryptography.DiffieHellman;
 import main.cryptography.AES;
-import main.users.User;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -20,6 +18,8 @@ import java.util.*;
 public class UserAdministration {
 
     private final String USERS_FILE = System.getProperty("user.home") + "/cryptor/users.cryptor";
+
+    // Key zur Verschlüsselung der User-Credentials im Dateisystem.
     private final byte[] CRYPTOR_AES_SECRET = new byte[]{
             (byte)0xf1,
             (byte)0xf0, 0x0b,
@@ -44,8 +44,7 @@ public class UserAdministration {
 
         try {
             readUsers();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -174,7 +173,7 @@ public class UserAdministration {
 
     // Einlesen der verschlüsselten Kontaktdatei und laden der Kontakte in die interne User-Map.
     // Der notwendige Key ist final definiert.
-    private void readUsers() throws IOException{
+    private void readUsers() throws IOException {
         File file = new File(USERS_FILE);
 
         if (file.exists()) {
@@ -199,7 +198,8 @@ public class UserAdministration {
                 String[] attributes = userString.split("---");
                 if (attributes.length == 5) {
                     this.users.put(Integer.parseInt(attributes[0]),
-                            new User(Integer.parseInt(attributes[0]),
+                            new User(Integer.parseInt(
+                                    attributes[0]),
                                     attributes[1],
                                     attributes[2].getBytes(Charset.forName("ISO-8859-1")),
                                     attributes[3].getBytes(Charset.forName("ISO-8859-1")),
