@@ -8,11 +8,11 @@ public class User {
     private byte[] myPubKey;
     private byte[] sharedSecret;
 
-    public User(int id, String name, byte[] myPrivKey, byte[] myPublicKey, byte[] sharedSecret) {
+    public User(int id, String name, byte[] myPrivKey, byte[] myPubKey, byte[] sharedSecret) {
         this.id = id;
         this.name = name;
         this.myPrivKey = myPrivKey;
-        this.myPubKey = myPublicKey;
+        this.myPubKey = myPubKey;
         this.sharedSecret = sharedSecret;
     }
 
