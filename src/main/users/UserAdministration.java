@@ -112,7 +112,7 @@ public class UserAdministration {
     public void finishSetup(int id, byte[] publicKeyEnc) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, IOException {
 
         // Über die mitgelieferte ID wird Alice ermittelt und anschließend mit ihrem Private-Key und Bob's Public-Key,
-        // um auf ihrer Seite das Shared-Secret zu berechnen.
+        // das Shared-Secret zu berechnet und als Attribut des Users gesetzt.
         for (Map.Entry<Integer, User> entry : users.entrySet()) {
             if (entry.getValue().getId() == id) {
                 entry.getValue().setSharedSecret(DiffieHellman.aliceComplete(entry.getValue().getMyPrivKey(), publicKeyEnc));
