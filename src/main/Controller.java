@@ -86,6 +86,7 @@ public class Controller {
         userAdministration = new UserAdministration();
     }
 
+    // Hilfsfunktion, um die Größe einer Datei mit passender Einheit zu berechnen.
     private static String getFileSizeString(long size) {
         DecimalFormat df = new DecimalFormat("0.00");
 
@@ -455,6 +456,10 @@ public class Controller {
             userAdministration.finishSetup(selectedUser.getId(), publicKeyEnc);
         }
 
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText("Finished key-exchange for user '" + selectedUser.getName() + "' successfully. You can now send encrypted messages to " + selectedUser.getName() + ".");
+        alert.showAndWait();
+
         resetTabContacts();
     }
 
@@ -466,6 +471,10 @@ public class Controller {
         }
 
         userAdministration.deleteUser(selectedUser.getId());
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setContentText("User '" + selectedUser.getName() + "' has been deleted successfully.");
+        alert.showAndWait();
 
         resetTabContacts();
     }
@@ -520,7 +529,7 @@ public class Controller {
             User user = userAdministration.createUser(textField_UserName.getText());
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setContentText("User '" + user.getName() + "' has been added. Please save the related public key and send it to " + user.getName() + ". Then get their public key and import it under 'contacts'.");
+            alert.setContentText("User '" + user.getName() + "' has been added successfully. Please save the related public key and send it to " + user.getName() + ". Then get their public key and import it under 'contacts'.");
             alert.showAndWait();
 
             FileChooser fc = new FileChooser();
