@@ -4,9 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="405.0"
-            prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="main.Controller">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.Controller">
     <TabPane prefHeight="405.0" prefWidth="750.0" tabClosingPolicy="UNAVAILABLE">
         <Tab onSelectionChanged="#loadEncryptionUser" text="Encrypt">
             <AnchorPane minHeight="0.0" minWidth="0.0">
@@ -15,12 +14,14 @@
                         text="Run Encryption"/>
                 <Button layoutX="14.0" layoutY="78.0" mnemonicParsing="false" onAction="#loadFile"
                         prefHeight="27.0" prefWidth="112.0" text="Load File"/>
-                <Label fx:id="label_documentFileSize" layoutX="162.0" layoutY="83.0"/>
+                <Label fx:id="label_documentFileSize" layoutX="162.0" layoutY="83.0" prefHeight="17.0"
+                       prefWidth="102.0"/>
                 <Label fx:id="label_documentName" layoutX="288.0" layoutY="83.0" prefHeight="17.0"
                        prefWidth="446.0"/>
                 <Button layoutX="14.0" layoutY="118.0" mnemonicParsing="false" onAction="#loadPicture"
                         prefHeight="27.0" prefWidth="112.0" text="Choose Picture"/>
-                <Label fx:id="label_pictureFileSize" layoutX="162.0" layoutY="123.0"/>
+                <Label fx:id="label_pictureFileSize" layoutX="162.0" layoutY="123.0" prefHeight="17.0"
+                       prefWidth="102.0"/>
                 <Label fx:id="label_pictureName" layoutX="288.0" layoutY="123.0" prefHeight="17.0"
                        prefWidth="445.0"/>
                 <ChoiceBox fx:id="choiseBox_encryptionUser" layoutX="421.0" layoutY="331.0"
@@ -49,7 +50,8 @@
                 <Button layoutX="14.0" layoutY="78.0" mnemonicParsing="false"
                         onAction="#loadEncryptedPicture" prefHeight="27.0" prefWidth="112.0"
                         text="Choose Picture"/>
-                <Label fx:id="label_encryptedPictureFileSize" layoutX="161.0" layoutY="83.0"/>
+                <Label fx:id="label_encryptedPictureFileSize" layoutX="161.0" layoutY="83.0"
+                       prefHeight="17.0" prefWidth="102.0"/>
                 <Label fx:id="label_encryptedPictureName" layoutX="288.0" layoutY="83.0" prefHeight="17.0"
                        prefWidth="446.0"/>
                 <ChoiceBox fx:id="choiseBox_decryptionUser" layoutX="421.0" layoutY="331.0"
@@ -72,22 +74,23 @@
                                      text="NAME"/>
                     </columns>
                 </TableView>
-                <Label fx:id="label_userName" layoutX="338.0" layoutY="20.0" maxWidth="17.0"/>
+                <Label fx:id="label_userName" layoutX="338.0" layoutY="20.0" maxWidth="376.0"
+                       prefHeight="17.0" prefWidth="384.0"/>
                 <Label fx:id="label_exportPubKey" layoutX="338.0" layoutY="69.0" prefHeight="17.0"
-                       prefWidth="383.0" text="This person might need your public key to finish setup."
+                       prefWidth="384.0" text="This person might need your public key to finish setup."
                        wrapText="true"/>
-                <Button fx:id="button_exportPublicKey" layoutX="339.0" layoutY="97.0"
-                        mnemonicParsing="false" onAction="#exportPublicKey" prefHeight="27.0"
-                        prefWidth="127.0" text="Export Public Key"/>
+                <Button fx:id="button_exportPublicKey" layoutX="339.0" layoutY="97.0" mnemonicParsing="false"
+                        onAction="#exportPublicKey" prefHeight="27.0" prefWidth="127.0"
+                        text="Export Public Key"/>
                 <Label fx:id="label_setupStatus" layoutX="338.0" layoutY="180.0" prefHeight="17.0"
-                       wrapText="true"/>
+                       prefWidth="384.0" wrapText="true"/>
                 <Label fx:id="label_importPubKey" layoutX="338.0" layoutY="204.0" prefHeight="34.0"
-                       prefWidth="383.0"
+                       prefWidth="384.0"
                        text="To finish key exchange and generate symmetric crypto keys please import this persons public key."
                        wrapText="true"/>
-                <Button fx:id="button_importPublicKey" layoutX="338.0" layoutY="251.0"
-                        mnemonicParsing="false" onAction="#importPublicKey" prefHeight="27.0"
-                        prefWidth="127.0" text="Import Public Key"/>
+                <Button fx:id="button_importPublicKey" layoutX="338.0" layoutY="251.0" mnemonicParsing="false"
+                        onAction="#importPublicKey" prefHeight="27.0" prefWidth="127.0"
+                        text="Import Public Key"/>
                 <Button fx:id="button_deleteContact" layoutX="626.0" layoutY="331.0" mnemonicParsing="false"
                         onAction="#deleteUser" prefHeight="27.0" prefWidth="110.0" text="Delete Contact"/>
             </AnchorPane>
@@ -103,7 +106,7 @@
                           onAction="#checkBoxState" prefHeight="18.0" prefWidth="274.0"
                           text="This person initialized the key exchange."/>
                 <Label fx:id="label_publicKey" layoutX="149.0" layoutY="117.0" prefHeight="17.0"
-                       visible="false"/>
+                       prefWidth="446.0" visible="false"/>
                 <Button fx:id="button_loadPublicKey" layoutX="14.0" layoutY="112.0" mnemonicParsing="false"
                         onAction="#loadPublicKey" prefHeight="27.0" prefWidth="117.0" text="Load Public Key"
                         visible="false"/>
