@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -49,7 +50,7 @@
                  <content>
                      <AnchorPane minHeight="0.0" minWidth="0.0">
                         <children>
-                            <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="373.0" prefWidth="317.0">
+                            <TableView fx:id="tableView_users" layoutY="-1.0" onKeyReleased="#selectUserInView" onMouseClicked="#selectUserInView" prefHeight="374.0" prefWidth="317.0">
                                 <columns>
                                     <TableColumn fx:id="tableColumn_id" prefWidth="63.0" resizable="false" text="ID" />
                                     <TableColumn fx:id="tableColumn_name" prefWidth="252.0" resizable="false" text="NAME" />
